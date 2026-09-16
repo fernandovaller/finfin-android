@@ -65,3 +65,6 @@ fun formatarData(iso: String): String {
         iso
     }
 }
+
+/** `pluralLancamentos` — "1 lançamento" / "N lançamentos". */
+fun pluralLancamentos(n: Int): String = if (n == 1) "1 lançamento" else "$n lançamentos"

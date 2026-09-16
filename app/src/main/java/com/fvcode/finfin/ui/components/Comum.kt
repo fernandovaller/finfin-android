@@ -1,11 +1,15 @@
 package com.fvcode.finfin.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -24,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.fvcode.finfin.core.util.mesLabel
 import java.util.Locale
 
@@ -52,11 +57,14 @@ fun FiltroConta(
     contas: List<Pair<Int, String>>,
     selecionada: Int?,
     aoTrocar: (Int?) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var aberto by remember { mutableStateOf(false) }
     val rotulo = contas.firstOrNull { it.first == selecionada }?.second ?: "Todas as contas"
-    Column {
-        OutlinedButton(onClick = { aberto = true }) { Text(rotulo) }
+    Column(modifier) {
+        OutlinedButton(onClick = { aberto = true }, modifier = Modifier.fillMaxWidth()) {
+            Text(rotulo, modifier = Modifier.weight(1f), maxLines = 1)
+        }
         DropdownMenu(expanded = aberto, onDismissRequest = { aberto = false }) {
             DropdownMenuItem(text = { Text("Todas as contas") }, onClick = {
                 aoTrocar(null)
@@ -75,6 +83,50 @@ fun FiltroConta(
 @Composable
 fun SecaoTitulo(texto: String) {
     Text(texto, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+}
+
+/**
+ * Pill escura do navegador de mês (`‹ setembro de 2026 📅 ›`), como no web.
+ * Toque no rótulo volta para o mês atual.
+ */
+@Composable
+fun MesNavEscuro(
+    mes: String,
+    aoAnterior: () -> Unit,
+    aoProximo: () -> Unit,
+    aoHoje: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val fundo = MaterialTheme.colorScheme.inverseSurface
+    val frente = MaterialTheme.colorScheme.inverseOnSurface
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .background(fundo, RoundedCornerShape(12.dp))
+            .padding(horizontal = 4.dp, vertical = 2.dp),
+    ) {
+        IconButton(onClick = aoAnterior) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Mês anterior", tint = frente)
+        }
+        TextButton(onClick = aoHoje, modifier = Modifier.weight(1f)) {
+            Text(
+                mesLabel(mes),
+                color = frente,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+            )
+            Icon(
+                Icons.Filled.DateRange,
+                contentDescription = null,
+                tint = frente,
+                modifier = Modifier.padding(start = 8.dp),
+            )
+        }
+        IconButton(onClick = aoProximo) {
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Próximo mês", tint = frente)
+        }
+    }
 }
 
 /** `ConfirmarExclusao` (espelha `ui.tsx`). */

@@ -52,6 +52,7 @@ data class HomeUiState(
     val qtdReceitas: Int = 0,
     val qtdDespesas: Int = 0,
     val saldosPorConta: Map<Int, Double> = emptyMap(),
+    val recDesMesPorConta: Map<Int, Pair<Double, Double>> = emptyMap(),
     val evolucao: List<PontoMensal> = emptyList(),
     val donut: List<FatiaCategoria> = emptyList(),
     val totalDonut: Double = 0.0,
@@ -170,6 +171,12 @@ class HomeViewModel @Inject constructor(
                         receitas.filter { it.contaId == conta.id }.sumOf { it.valor } -
                         despesas.filter { it.contaId == conta.id }.sumOf { it.valor })
                 }
+                val recDesMes = contas.associate { conta ->
+                    conta.id to (
+                        receitasMes.filter { it.contaId == conta.id }.sumOf { it.valor } to
+                            despesasMes.filter { it.contaId == conta.id }.sumOf { it.valor }
+                        )
+                }
 
                 _estado.value = _estado.value.copy(
                     carregando = false,
@@ -178,6 +185,7 @@ class HomeViewModel @Inject constructor(
                     qtdReceitas = receitasMes.size,
                     qtdDespesas = despesasMes.size,
                     saldosPorConta = saldos,
+                    recDesMesPorConta = recDesMes,
                     evolucao = evolucao,
                     donut = donut,
                     totalDonut = despesasMes.sumOf { it.valor },

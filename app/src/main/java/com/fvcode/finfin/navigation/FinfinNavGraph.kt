@@ -102,6 +102,9 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
                         aoSessaoExpirada = {
                             vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
                         },
+                        aoGerenciarContas = {
+                            nav.navigate(Rotas.CONTAS) { launchSingleTop = true }
+                        },
                     )
                 }
                 composable(Rotas.LANCAMENTOS) {
