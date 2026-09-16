@@ -1,9 +1,13 @@
 package com.fvcode.finfin.navigation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.BarChart
@@ -36,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +51,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.fvcode.finfin.data.model.Usuario
+import com.fvcode.finfin.ui.components.AvatarUsuario
 import com.fvcode.finfin.ui.screens.TelaCarga
 import com.fvcode.finfin.ui.screens.TelaLogin
 import com.fvcode.finfin.ui.screens.TelaSimples
@@ -123,6 +130,8 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
     val backStack by nav.currentBackStackEntryAsState()
     val rotaAtual = backStack?.destination?.route
     val destinoAtual = destinos.firstOrNull { it.rota == rotaAtual }
+    val sessao by vm.estado.collectAsState()
+    val usuario = (sessao as? SessaoUi.Logada)?.usuario
 
     fun navegar(rota: String) {
         escopo.launch { drawer.close() }
@@ -138,7 +147,9 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
         drawerContent = {
             ModalNavigationDrawerSafeContent(
                 rotaAtual = rotaAtual,
+                usuario = usuario,
                 aoNavegar = ::navegar,
+                aoAbrirPerfil = { navegar(Rotas.PERFIL) },
                 aoSair = {
                     escopo.launch { drawer.close() }
                     vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
@@ -261,13 +272,42 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
 @Composable
 private fun ModalNavigationDrawerSafeContent(
     rotaAtual: String?,
+    usuario: Usuario?,
     aoNavegar: (String) -> Unit,
+    aoAbrirPerfil: () -> Unit,
     aoSair: () -> Unit,
 ) {
     ModalDrawerSheet {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            Text("FinFin", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text("Controle financeiro", style = MaterialTheme.typography.bodySmall)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = usuario != null, onClick = aoAbrirPerfil)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+        ) {
+            if (usuario != null) {
+                AvatarUsuario(nome = usuario.nome, dataUrl = usuario.avatar)
+                Spacer(Modifier.width(12.dp))
+            }
+            Column(Modifier.weight(1f)) {
+                Text("FinFin", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                if (usuario != null) {
+                    Text(
+                        usuario.nome,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                    )
+                    Text(
+                        usuario.email,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                    )
+                } else {
+                    Text("Controle financeiro", style = MaterialTheme.typography.bodySmall)
+                }
+            }
         }
         HorizontalDivider()
         Spacer(Modifier.height(8.dp))

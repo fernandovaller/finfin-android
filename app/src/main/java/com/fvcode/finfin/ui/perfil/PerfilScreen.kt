@@ -1,13 +1,9 @@
 package com.fvcode.finfin.ui.perfil
 
-import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,13 +11,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -36,17 +30,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.fvcode.finfin.ui.components.AvatarUsuario
 import com.fvcode.finfin.ui.components.FinfinCard
-import com.fvcode.finfin.ui.components.SecaoTitulo
-import com.fvcode.finfin.ui.home.COR_POR_NOME
 import com.fvcode.finfin.ui.session.SessaoViewModel
 
 private val MIMES_ACEITOS = mapOf(
@@ -110,13 +100,11 @@ fun PerfilScreen(
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        SecaoTitulo("Perfil")
-
         estado.erro?.let { msg ->
-            Card {
-                Column(Modifier.padding(12.dp)) {
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp)) {
                     Text(msg, color = MaterialTheme.colorScheme.error)
                     Spacer(Modifier.height(8.dp))
                     Button(onClick = { vm.recarregar() }) { Text("Tentar de novo") }
@@ -125,8 +113,8 @@ fun PerfilScreen(
         }
 
         estado.info?.let { msg ->
-            Card {
-                Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(msg, modifier = Modifier.weight(1f))
                     TextButton(onClick = { vm.consumirInfo() }) { Text("OK") }
                 }
@@ -134,24 +122,32 @@ fun PerfilScreen(
         }
 
         if (estado.carregando) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                CircularProgressIndicator()
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.Center) {
+                    CircularProgressIndicator()
+                }
             }
             return@Column
         }
 
         val usuario = estado.usuario
         if (usuario == null) {
-            Text("Não foi possível carregar o perfil.", color = MaterialTheme.colorScheme.error)
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Não foi possível carregar o perfil.", color = MaterialTheme.colorScheme.error)
+                }
+            }
             return@Column
         }
 
-        FinfinCard {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FinfinCard(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Perfil", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    AvatarPerfil(
+                    AvatarUsuario(
                         nome = usuario.nome,
                         dataUrl = if (removerAvatar) null else avatarNovo ?: usuario.avatar,
+                        tamanho = 72.dp,
                     )
                     Spacer(Modifier.width(12.dp))
                     Column {
@@ -194,12 +190,16 @@ fun PerfilScreen(
                         }
                         vm.salvarPerfil(nome, email, acao) { sessao.sincronizar(it) }
                     },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.inverseSurface,
+                        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    ),
                 ) { Text(if (estado.salvandoPerfil) "Salvando..." else "Salvar perfil") }
             }
         }
 
-        SecaoTitulo("Trocar senha")
-        Card {
+        FinfinCard(modifier = Modifier.fillMaxWidth()) {
             var atual by remember { mutableStateOf("") }
             var nova by remember { mutableStateOf("") }
             var confirmacao by remember { mutableStateOf("") }
@@ -210,7 +210,8 @@ fun PerfilScreen(
                     confirmacao = ""
                 }
             }
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Trocar senha", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 OutlinedTextField(
                     value = atual,
                     onValueChange = { atual = it },
@@ -239,6 +240,11 @@ fun PerfilScreen(
                 Button(
                     enabled = !estado.trocandoSenha,
                     onClick = { vm.trocarSenha(atual, nova, confirmacao) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.inverseSurface,
+                        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    ),
                 ) { Text(if (estado.trocandoSenha) "Trocando..." else "Trocar senha") }
                 if (estado.senhaOk) {
                     Text(
@@ -248,54 +254,5 @@ fun PerfilScreen(
                 }
             }
         }
-    }
-}
-
-/** `Avatar`: iniciais 1–2 letras, cor por hash `% 8` (espelha `ui.tsx:190-236`). */
-@Composable
-private fun AvatarPerfil(nome: String, dataUrl: String?) {
-    val bitmap = remember(dataUrl) { dataUrl?.let { dataUrlParaBitmap(it) } }
-    if (bitmap != null) {
-        Image(
-            bitmap = bitmap,
-            contentDescription = "Avatar",
-            modifier = Modifier.size(72.dp).clip(CircleShape),
-        )
-        return
-    }
-    val iniciais = remember(nome) {
-        nome.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
-            .let { partes ->
-                when {
-                    partes.isEmpty() -> "?"
-                    partes.size == 1 -> partes[0].take(2).uppercase()
-                    else -> "${partes[0].first()}${partes.last().first()}".uppercase()
-                }
-            }
-    }
-    val cor = remember(nome) {
-        COR_POR_NOME.values.elementAt((nome.hashCode() and Int.MAX_VALUE) % COR_POR_NOME.size)
-    }
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.size(72.dp).clip(CircleShape).background(cor),
-    ) {
-        Text(
-            iniciais,
-            color = androidx.compose.ui.graphics.Color.White,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleLarge,
-        )
-    }
-}
-
-private fun dataUrlParaBitmap(dataUrl: String): ImageBitmap? {
-    return try {
-        val b64 = dataUrl.substringAfter("base64,", "")
-        if (b64.isEmpty()) return null
-        val bytes = Base64.decode(b64, Base64.DEFAULT)
-        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
-    } catch (_: Exception) {
-        null
     }
 }
