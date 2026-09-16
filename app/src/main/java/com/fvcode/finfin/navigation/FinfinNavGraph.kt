@@ -22,6 +22,7 @@ import com.fvcode.finfin.ui.screens.TelaCarga
 import com.fvcode.finfin.ui.screens.TelaLogin
 import com.fvcode.finfin.ui.screens.TelaSimples
 import com.fvcode.finfin.ui.categorias.CategoriasScreen
+import com.fvcode.finfin.ui.config.ConfigScreen
 import com.fvcode.finfin.ui.contas.ContasScreen
 import com.fvcode.finfin.ui.formas.FormasScreen
 import com.fvcode.finfin.ui.home.HomeScreen
@@ -136,7 +137,13 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
                     )
                 }
                 composable(Rotas.AUDITORIA) { TelaSimples("Auditoria") }
-                composable(Rotas.CONFIG) { TelaSimples("Configurações") }
+                composable(Rotas.CONFIG) {
+                    ConfigScreen(
+                        aoSessaoExpirada = {
+                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                        },
+                    )
+                }
                 composable(Rotas.PERFIL) { TelaSimples("Perfil") }
                 composable(Rotas.LOGIN) { TelaSimples("Sessão encerrada") }
             }

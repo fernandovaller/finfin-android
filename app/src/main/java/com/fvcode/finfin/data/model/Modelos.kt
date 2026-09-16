@@ -152,3 +152,21 @@ data class AuditoriaPagina(
 )
 
 data class LimpezaResposta(val excluidas: Int)
+
+// --- Backup / demo (06-import-export-demo.md) ---
+
+data class DemoStatus(
+    val existe: Boolean = false,
+    val contas: Int = 0,
+    val receitas: Int = 0,
+    val despesas: Int = 0,
+)
+
+data class ImportResult(
+    val modo: String = "",
+    val categorias: Int = 0,
+    val formasPagamento: Int = 0,
+    val contas: Int = 0,
+    val receitas: Int = 0,
+    val despesas: Int = 0,
+)

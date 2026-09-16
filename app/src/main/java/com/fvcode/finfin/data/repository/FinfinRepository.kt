@@ -9,17 +9,21 @@ import com.fvcode.finfin.data.model.CategoriaEdicao
 import com.fvcode.finfin.data.model.Conta
 import com.fvcode.finfin.data.model.ContaCorpo
 import com.fvcode.finfin.data.model.Contagem
+import com.fvcode.finfin.data.model.DemoStatus
 import com.fvcode.finfin.data.model.Despesa
 import com.fvcode.finfin.data.model.DespesaCorpo
 import com.fvcode.finfin.data.model.ExcluirGrupoResposta
 import com.fvcode.finfin.data.model.FormaCorpo
 import com.fvcode.finfin.data.model.FormaPagamento
+import com.fvcode.finfin.data.model.ImportResult
+import com.fvcode.finfin.data.model.IntegracoesCorpo
 import com.fvcode.finfin.data.model.Receita
 import com.fvcode.finfin.data.model.ReceitaCorpo
 import com.fvcode.finfin.data.model.Resumo
 import com.fvcode.finfin.data.remote.FinfinApi
 import com.fvcode.finfin.data.remote.despesasCriadasResposta
 import com.fvcode.finfin.data.remote.excluirDespesaResposta
+import com.google.gson.JsonObject
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -66,4 +70,33 @@ class FinfinRepository @Inject constructor(
     suspend fun criarConta(c: ContaCorpo) = chamada { api.criarConta(c) }
     suspend fun editarConta(id: Int, c: ContaCorpo) = chamada { api.editarConta(id, c) }
     suspend fun excluirConta(id: Int): ApiResult<Unit> = chamada { api.excluirConta(id) }
+
+    suspend fun restaurarPadrao() = chamada { api.restaurarPadrao() }
+
+    // Backup / demo / perigo (06-import-export-demo.md, 02-backend.md apagão)
+    suspend fun exportar(): ApiResult<JsonObject> = chamada { api.exportar() }
+
+    suspend fun exportarCsv(tipo: String): ApiResult<String> =
+        chamada { api.exportarCsv(tipo).string() }
+
+    suspend fun importar(modo: String, backup: JsonObject): ApiResult<ImportResult> = chamada {
+        val corpo = JsonObject().apply {
+            addProperty("modo", modo)
+            add("backup", backup)
+        }
+        com.google.gson.Gson().fromJson(api.importar(corpo), ImportResult::class.java)
+    }
+
+    suspend fun demoStatus(): ApiResult<DemoStatus> = chamada {
+        com.google.gson.Gson().fromJson(api.statusDemo(), DemoStatus::class.java)
+    }
+
+    suspend fun gerarDemo(): ApiResult<Unit> = chamada { api.gerarDemo() }
+    suspend fun removerDemo(): ApiResult<Unit> = chamada { api.removerDemo() }
+    suspend fun apagarLancamentos() = chamada { api.apagarLancamentos() }
+    suspend fun apagarTudo() = chamada { api.apagarTudo() }
+
+    suspend fun integracoes() = chamada { api.integracoes() }
+    suspend fun salvarIntegracoes(chave: String?) =
+        chamada { api.salvarIntegracoes(IntegracoesCorpo(chave)) }
 }

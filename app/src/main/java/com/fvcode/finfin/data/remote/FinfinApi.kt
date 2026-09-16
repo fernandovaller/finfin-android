@@ -29,6 +29,7 @@ import com.fvcode.finfin.data.model.TrocarSenhaCorpo
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -109,6 +110,9 @@ interface FinfinApi {
     @DELETE("auditoria") suspend fun limparAuditoria(@Query("antesDe") antesDe: String? = null): LimpezaResposta
 
     // Dados / backup / demo
+    @GET("exportar") suspend fun exportar(): JsonObject
+    @GET("exportar/csv") suspend fun exportarCsv(@Query("tipo") tipo: String): ResponseBody
+    @POST("importar") suspend fun importar(@Body corpo: JsonObject): JsonObject
     @DELETE("dados/lancamentos") suspend fun apagarLancamentos(): JsonObject
     @DELETE("dados/tudo") suspend fun apagarTudo(): JsonObject
     @GET("dados/demonstracao") suspend fun statusDemo(): JsonObject
