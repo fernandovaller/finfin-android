@@ -129,11 +129,31 @@ fun HomeScreen(
             aoGerenciar = aoGerenciarContas,
         )
 
-        SecaoTitulo("Evolução (6 meses)")
-        GraficoBarrasMensal(estado.evolucao)
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    "Receitas x Despesas",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text("Últimos 6 meses", style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(8.dp))
+                GraficoBarrasMensal(estado.evolucao)
+            }
+        }
 
-        SecaoTitulo("Despesas por categoria")
-        GraficoDonut(estado.donut, estado.totalDonut)
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    "Despesas por categoria · ${mesLabel(estado.mes)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text("Por categoria no mês", style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(8.dp))
+                GraficoDonut(estado.donut, estado.totalDonut)
+            }
+        }
 
         SecaoTitulo("Atividade recente")
         if (estado.recentes.isEmpty()) {
