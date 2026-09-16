@@ -26,6 +26,8 @@ import com.fvcode.finfin.data.model.RestaurarResposta
 import com.fvcode.finfin.data.model.Resumo
 import com.fvcode.finfin.data.model.Sessao
 import com.fvcode.finfin.data.model.TrocarSenhaCorpo
+import com.google.gson.Gson
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -58,7 +60,8 @@ interface FinfinApi {
     @DELETE("receitas/{id}") suspend fun excluirReceita(@Path("id") id: Int)
 
     @GET("despesas") suspend fun despesas(@Query("contaId") contaId: Int? = null): List<Despesa>
-    @POST("despesas") suspend fun criarDespesa(@Body corpo: DespesaCorpo): List<Despesa>
+    // POST /despesas retorna OBJETO p/ 1 parcela e ARRAY p/ N — normalizado no repositorio.
+    @POST("despesas") suspend fun criarDespesa(@Body corpo: DespesaCorpo): JsonElement
     @PUT("despesas/{id}") suspend fun editarDespesa(@Path("id") id: Int, @Body corpo: DespesaCorpo): Despesa
     @DELETE("despesas/{id}") suspend fun excluirDespesa(
         @Path("id") id: Int,
@@ -120,4 +123,13 @@ fun excluirDespesaResposta(raw: Any): ExcluirGrupoResposta {
         return ExcluirGrupoResposta(n)
     }
     return ExcluirGrupoResposta(1)
+}
+
+/** POST /despesas: objeto unico (1 parcela) ou array (N parcelas). */
+fun despesasCriadasResposta(raw: JsonElement, gson: Gson = Gson()): List<Despesa> {
+    return if (raw.isJsonArray) {
+        raw.asJsonArray.map { gson.fromJson(it, Despesa::class.java) }
+    } else {
+        listOf(gson.fromJson(raw, Despesa::class.java))
+    }
 }

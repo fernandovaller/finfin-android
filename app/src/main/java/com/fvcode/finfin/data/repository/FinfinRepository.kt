@@ -18,6 +18,7 @@ import com.fvcode.finfin.data.model.Receita
 import com.fvcode.finfin.data.model.ReceitaCorpo
 import com.fvcode.finfin.data.model.Resumo
 import com.fvcode.finfin.data.remote.FinfinApi
+import com.fvcode.finfin.data.remote.despesasCriadasResposta
 import com.fvcode.finfin.data.remote.excluirDespesaResposta
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -40,7 +41,10 @@ class FinfinRepository @Inject constructor(
     suspend fun receitas(contaId: Int? = null): ApiResult<List<Receita>> = chamada { api.receitas(contaId) }
     suspend fun despesas(contaId: Int? = null): ApiResult<List<Despesa>> = chamada { api.despesas(contaId) }
     suspend fun criarReceita(c: ReceitaCorpo): ApiResult<Receita> = chamada { api.criarReceita(c) }
-    suspend fun criarDespesa(c: DespesaCorpo): ApiResult<List<Despesa>> = chamada { api.criarDespesa(c) }
+    suspend fun criarDespesa(c: DespesaCorpo): ApiResult<List<Despesa>> =
+        chamada { despesasCriadasResposta(api.criarDespesa(c)) }
+    suspend fun editarReceita(id: Int, c: ReceitaCorpo): ApiResult<Receita> = chamada { api.editarReceita(id, c) }
+    suspend fun editarDespesa(id: Int, c: DespesaCorpo): ApiResult<Despesa> = chamada { api.editarDespesa(id, c) }
     suspend fun excluirReceita(id: Int): ApiResult<Unit> = chamada { api.excluirReceita(id) }
     suspend fun excluirDespesa(id: Int, grupo: Boolean): ApiResult<ExcluirGrupoResposta> = chamada {
         excluirDespesaResposta(api.excluirDespesa(id, if (grupo) "grupo" else null))
