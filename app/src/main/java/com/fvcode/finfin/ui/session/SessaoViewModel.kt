@@ -78,6 +78,24 @@ class SessaoViewModel @Inject constructor(
         }
     }
 
+    fun recuperarSenha(email: String, aoOk: () -> Unit, aoErro: (String) -> Unit) {
+        viewModelScope.launch {
+            when (val r = auth.recuperarSenha(email)) {
+                is ApiResult.Ok -> aoOk()
+                is ApiResult.Erro -> aoErro(r.mensagem)
+            }
+        }
+    }
+
+    fun redefinirSenha(token: String, novaSenha: String, aoOk: () -> Unit, aoErro: (String) -> Unit) {
+        viewModelScope.launch {
+            when (val r = auth.redefinirSenha(token, novaSenha)) {
+                is ApiResult.Ok -> aoOk()
+                is ApiResult.Erro -> aoErro(r.mensagem)
+            }
+        }
+    }
+
     fun sair(aoFim: () -> Unit) {
         viewModelScope.launch {
             auth.sair()

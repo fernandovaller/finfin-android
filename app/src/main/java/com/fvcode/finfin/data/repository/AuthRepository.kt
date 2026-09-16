@@ -88,6 +88,19 @@ class AuthRepository @Inject constructor(
         return aoResultado({ api.trocarSenha(TrocarSenhaCorpo(atual, nova)) }, semToken)
     }
 
+    /** `POST /auth/recuperar-senha` — sempre `{ok: true}` anti-enumeração. */
+    suspend fun recuperarSenha(email: String): ApiResult<Unit> {
+        return aoResultado({ api.recuperarSenha(mapOf("email" to email)); Unit }, semToken = true)
+    }
+
+    /** `POST /auth/redefinir-senha` — `{token, novaSenha}`. */
+    suspend fun redefinirSenha(token: String, novaSenha: String): ApiResult<Unit> {
+        return aoResultado(
+            { api.redefinirSenha(mapOf("token" to token, "novaSenha" to novaSenha)); Unit },
+            semToken = true,
+        )
+    }
+
     suspend fun aoSessaoExpirada() {
         prefs.salvarToken(null)
     }

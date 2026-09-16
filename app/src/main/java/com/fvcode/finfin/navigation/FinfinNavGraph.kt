@@ -47,14 +47,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.fvcode.finfin.data.model.Usuario
+import com.fvcode.finfin.ui.auth.TelaAuth
+import com.fvcode.finfin.ui.auth.TelaRecuperarSenha
+import com.fvcode.finfin.ui.auth.TelaRedefinirSenha
 import com.fvcode.finfin.ui.components.AvatarUsuario
 import com.fvcode.finfin.ui.screens.TelaCarga
-import com.fvcode.finfin.ui.screens.TelaLogin
 import com.fvcode.finfin.ui.screens.TelaSimples
 import com.fvcode.finfin.ui.auditoria.AuditoriaScreen
 import com.fvcode.finfin.ui.categorias.CategoriasScreen
@@ -111,12 +115,36 @@ fun FinfinNavGraph(
         SessaoUi.Carregando -> TelaCarga()
         SessaoUi.Deslogada -> NavHost(nav, startDestination = Rotas.LOGIN) {
             composable(Rotas.LOGIN) {
-                TelaLogin(vm, aoEntrar = {
-                    nav.navigate(Rotas.HOME) { popUpTo(Rotas.LOGIN) { inclusive = true } }
-                })
+                TelaAuth(
+                    vm,
+                    aoEntrar = {
+                        nav.navigate(Rotas.HOME) { popUpTo(Rotas.LOGIN) { inclusive = true } }
+                    },
+                    aoRecuperar = { nav.navigate(Rotas.RECUPERAR) },
+                )
             }
-            composable(Rotas.RECUPERAR) { TelaSimples("Recuperar senha") }
-            composable(Rotas.REDEFINIR) { TelaSimples("Redefinir senha") }
+            composable(Rotas.RECUPERAR) {
+                TelaRecuperarSenha(
+                    vm,
+                    aoVoltarLogin = { nav.popBackStack() },
+                )
+            }
+            composable(
+                Rotas.REDEFINIR,
+                arguments = listOf(navArgument("token") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                    nullable = true
+                }),
+            ) { entrada ->
+                TelaRedefinirSenha(
+                    vm,
+                    token = entrada.arguments?.getString("token")?.takeIf { it.isNotBlank() },
+                    aoConcluir = {
+                        nav.navigate(Rotas.LOGIN) { popUpTo(Rotas.LOGIN) { inclusive = true } }
+                    },
+                )
+            }
         }
         is SessaoUi.Logada -> EstruturaLogada(vm, nav)
     }
