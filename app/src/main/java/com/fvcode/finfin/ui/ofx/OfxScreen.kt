@@ -13,14 +13,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -36,13 +39,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fvcode.finfin.core.util.emReais
 import com.fvcode.finfin.core.util.formatarData
 import com.fvcode.finfin.data.model.Conta
-import com.fvcode.finfin.ui.components.SecaoTitulo
+import com.fvcode.finfin.ui.components.FinfinCard
 
+private val VERDE = Color(0xFF16A34A)
+private val VERMELHO = Color(0xFFDC2626)
+
+/** Espelha `ImportarOfx.tsx`: arquivo + destino + prévia com checkbox/tipo/categoria. */
 @Composable
 fun OfxScreen(
     vm: OfxViewModel = hiltViewModel(),
@@ -74,23 +82,23 @@ fun OfxScreen(
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        SecaoTitulo("Importar OFX")
-
         estado.erro?.let { msg ->
-            Card {
-                Column(Modifier.padding(12.dp)) {
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(msg, color = MaterialTheme.colorScheme.error)
-                    Spacer(Modifier.height(8.dp))
                     Button(onClick = { vm.recarregar() }) { Text("Tentar de novo") }
                 }
             }
         }
 
         estado.info?.let { msg ->
-            Card {
-                Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    Modifier.fillMaxWidth().padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Text(msg, modifier = Modifier.weight(1f))
                     TextButton(onClick = { vm.consumirInfo() }) { Text("OK") }
                 }
@@ -98,74 +106,117 @@ fun OfxScreen(
         }
 
         if (estado.carregando) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                CircularProgressIndicator()
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.Center) {
+                    CircularProgressIndicator()
+                }
             }
             return@Column
         }
 
-        SeletorContaOfx(
-            contas = estado.contas,
-            selecionada = estado.contaId,
-            aoEscolher = { vm.trocarConta(it) },
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SeletorTextoOfx(
-                rotulo = "Cat. receita",
-                valor = estado.categoriaReceita.ifBlank { "—" },
-                opcoes = estado.categoriasReceita,
-                aoEscolher = { vm.trocarCategoriaReceita(it) },
-                modifier = Modifier.weight(1f),
-            )
-            SeletorTextoOfx(
-                rotulo = "Cat. despesa",
-                valor = estado.categoriaDespesa.ifBlank { "—" },
-                opcoes = estado.categoriasDespesa,
-                aoEscolher = { vm.trocarCategoriaDespesa(it) },
-                modifier = Modifier.weight(1f),
-            )
+        FinfinCard(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Arquivo OFX", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "Escolha um extrato .ofx para ver a prévia antes de importar.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedButton(
+                    onClick = { abrirArquivo.launch(arrayOf("*/*")) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Filled.Upload, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        if (estado.nomeArquivo.isBlank()) "Escolher arquivo .ofx" else estado.nomeArquivo,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
         }
-        SeletorTextoOfx(
-            rotulo = "Forma de pagamento",
-            valor = estado.formaPagamento.ifBlank { "Não informada" },
-            opcoes = listOf("") + estado.formas,
-            rotuloOpcao = { if (it.isBlank()) "Não informada" else it },
-            aoEscolher = { vm.trocarForma(it) },
-        )
 
-        OutlinedButton(
-            onClick = { abrirArquivo.launch(arrayOf("*/*")) },
-            modifier = Modifier.fillMaxWidth(),
-        ) { Text(if (estado.nomeArquivo.isBlank()) "Escolher arquivo .ofx" else estado.nomeArquivo) }
+        FinfinCard(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Destino", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                SeletorContaOfx(
+                    contas = estado.contas,
+                    selecionada = estado.contaId,
+                    aoEscolher = { vm.trocarConta(it) },
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SeletorTextoOfx(
+                        rotulo = "Cat. receita",
+                        valor = estado.categoriaReceita.ifBlank { "—" },
+                        opcoes = estado.categoriasReceita,
+                        aoEscolher = { vm.trocarCategoriaReceita(it) },
+                        modifier = Modifier.weight(1f),
+                    )
+                    SeletorTextoOfx(
+                        rotulo = "Cat. despesa",
+                        valor = estado.categoriaDespesa.ifBlank { "—" },
+                        opcoes = estado.categoriasDespesa,
+                        aoEscolher = { vm.trocarCategoriaDespesa(it) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                SeletorTextoOfx(
+                    rotulo = "Forma de pagamento",
+                    valor = estado.formaPagamento.ifBlank { "Não informada" },
+                    opcoes = listOf("") + estado.formas,
+                    rotuloOpcao = { if (it.isBlank()) "Não informada" else it },
+                    aoEscolher = { vm.trocarForma(it) },
+                )
+            }
+        }
 
         if (estado.linhas.isNotEmpty()) {
             val incluidos = estado.linhas.count { it.incluir }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "$incluidos de ${estado.linhas.size} incluídos",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f),
-                )
-                TextButton(onClick = { vm.marcarTodas(true) }) { Text("Todas") }
-                TextButton(onClick = { vm.marcarTodas(false) }) { Text("Nenhuma") }
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "Prévia ($incluidos de ${estado.linhas.size})",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(onClick = { vm.marcarTodas(true) }) { Text("Todas") }
+                        TextButton(onClick = { vm.marcarTodas(false) }) { Text("Nenhuma") }
+                    }
+                    estado.linhas.forEachIndexed { i, linha ->
+                        if (i > 0) HorizontalDivider()
+                        LinhaPrevia(
+                            linha = linha,
+                            catsReceita = estado.categoriasReceita,
+                            catsDespesa = estado.categoriasDespesa,
+                            aoIncluir = { vm.alternarIncluir(i) },
+                            aoTipo = { vm.trocarTipo(i, it) },
+                            aoCategoria = { vm.trocarCategoriaLinha(i, it) },
+                        )
+                    }
+                    Button(
+                        enabled = !estado.enviando,
+                        onClick = { vm.enviar() },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.inverseSurface,
+                            contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                        ),
+                    ) { Text(if (estado.enviando) "Importando..." else "Importar selecionados") }
+                }
             }
-            estado.linhas.forEachIndexed { i, linha ->
-                LinhaPrevia(
-                    linha = linha,
-                    catsReceita = estado.categoriasReceita,
-                    catsDespesa = estado.categoriasDespesa,
-                    aoIncluir = { vm.alternarIncluir(i) },
-                    aoTipo = { vm.trocarTipo(i, it) },
-                    aoCategoria = { vm.trocarCategoriaLinha(i, it) },
-                )
-                if (i < estado.linhas.lastIndex) HorizontalDivider()
+        } else if (estado.nomeArquivo.isNotBlank()) {
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(
+                        "Nenhum lançamento na prévia. Escolha outro arquivo.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
-            Button(
-                enabled = !estado.enviando,
-                onClick = { vm.enviar() },
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text(if (estado.enviando) "Importando..." else "Importar selecionados") }
         }
     }
 }
@@ -180,7 +231,10 @@ private fun LinhaPrevia(
     aoCategoria: (String) -> Unit,
 ) {
     val cats = if (linha.tipo == "receita") catsReceita else catsDespesa
-    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(
+        Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = linha.incluir, onCheckedChange = { aoIncluir() })
             Column(Modifier.weight(1f)) {
@@ -188,13 +242,14 @@ private fun LinhaPrevia(
                 Text(
                     "${formatarData(linha.item.data)}${linha.item.fitid?.let { " • $it" } ?: ""}",
                     style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Spacer(Modifier.width(8.dp))
             Text(
                 linha.item.valor.emReais(),
                 fontWeight = FontWeight.SemiBold,
-                color = if (linha.tipo == "receita") Color(0xFF16A34A) else MaterialTheme.colorScheme.error,
+                color = if (linha.tipo == "receita") VERDE else VERMELHO,
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -226,8 +281,14 @@ private fun SeletorContaOfx(contas: List<Conta>, selecionada: Int?, aoEscolher: 
     var aberto by remember { mutableStateOf(false) }
     val nome = contas.firstOrNull { it.id == selecionada }?.nome ?: "Conta"
     Column {
+        Text(
+            "Conta",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(4.dp))
         OutlinedButton(onClick = { aberto = true }, modifier = Modifier.fillMaxWidth()) {
-            Text("Conta: $nome", modifier = Modifier.weight(1f))
+            Text("Conta: $nome", modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         DropdownMenu(expanded = aberto, onDismissRequest = { aberto = false }) {
             contas.forEach { c ->
@@ -254,8 +315,19 @@ private fun SeletorTextoOfx(
 ) {
     var aberto by remember { mutableStateOf(false) }
     Column(modifier) {
+        Text(
+            rotulo,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(4.dp))
         OutlinedButton(onClick = { aberto = true }, modifier = Modifier.fillMaxWidth()) {
-            Text("$rotulo: ${rotuloOpcao(valor)}", modifier = Modifier.weight(1f), maxLines = 1)
+            Text(
+                rotuloOpcao(valor),
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
         DropdownMenu(expanded = aberto, onDismissRequest = { aberto = false }) {
             opcoes.forEach { op ->

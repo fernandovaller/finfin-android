@@ -59,7 +59,6 @@ import com.fvcode.finfin.ui.auth.TelaRecuperarSenha
 import com.fvcode.finfin.ui.auth.TelaRedefinirSenha
 import com.fvcode.finfin.ui.components.AvatarUsuario
 import com.fvcode.finfin.ui.screens.TelaCarga
-import com.fvcode.finfin.ui.screens.TelaSimples
 import com.fvcode.finfin.ui.auditoria.AuditoriaScreen
 import com.fvcode.finfin.ui.categorias.CategoriasScreen
 import com.fvcode.finfin.ui.config.ConfigScreen
@@ -84,12 +83,12 @@ private data class Destino(
 private val destinos = listOf(
     Destino(Rotas.HOME, "Início", "Principal", Icons.Filled.Home),
     Destino(Rotas.LANCAMENTOS, "Lançamentos", "Principal", Icons.Filled.List),
-    Destino(Rotas.OFX, "Importar OFX", "Principal", Icons.Filled.Upload),
     Destino(Rotas.RELATORIOS, "Relatórios", "Principal", Icons.Filled.BarChart),
     Destino(Rotas.CATEGORIAS, "Categorias", "Cadastros", Icons.Filled.Category),
     Destino(Rotas.CONTAS, "Contas", "Cadastros", Icons.Filled.AccountBalanceWallet),
     Destino(Rotas.FORMAS, "Formas de pagamento", "Cadastros", Icons.Filled.CreditCard),
     Destino(Rotas.CONFIG, "Configurações", "Sistema", Icons.Filled.Settings),
+    Destino(Rotas.OFX, "Importar OFX", "Sistema", Icons.Filled.Upload),
     Destino(Rotas.AUDITORIA, "Auditoria", "Sistema", Icons.Filled.History),
     Destino(Rotas.PERFIL, "Perfil", "Sistema", Icons.Filled.Person),
 )
@@ -103,56 +102,71 @@ private val destinosBottom = listOf(
 
 /**
  * Equivalente de `RotaProtegida > Layout > Outlet` (`main.tsx`, `Layout.tsx`).
+ *
+ * Auth e área logada usam `NavController`s isolados: o login altera
+ * `SessaoViewModel.estado` e a recomposição troca o grafo — navegar de
+ * `login` para `home` no mesmo controller quebra (`home` não existe no
+ * grafo deslogado).
  */
 @Composable
 fun FinfinNavGraph(
     vm: SessaoViewModel = hiltViewModel(),
-    nav: NavHostController = rememberNavController(),
 ) {
     val estado by vm.estado.collectAsState()
 
     when (estado) {
         SessaoUi.Carregando -> TelaCarga()
-        SessaoUi.Deslogada -> NavHost(nav, startDestination = Rotas.LOGIN) {
-            composable(Rotas.LOGIN) {
-                TelaAuth(
-                    vm,
-                    aoEntrar = {
-                        nav.navigate(Rotas.HOME) { popUpTo(Rotas.LOGIN) { inclusive = true } }
-                    },
-                    aoRecuperar = { nav.navigate(Rotas.RECUPERAR) },
-                )
-            }
-            composable(Rotas.RECUPERAR) {
-                TelaRecuperarSenha(
-                    vm,
-                    aoVoltarLogin = { nav.popBackStack() },
-                )
-            }
-            composable(
-                Rotas.REDEFINIR,
-                arguments = listOf(navArgument("token") {
-                    type = NavType.StringType
-                    defaultValue = ""
-                    nullable = true
-                }),
-            ) { entrada ->
-                TelaRedefinirSenha(
-                    vm,
-                    token = entrada.arguments?.getString("token")?.takeIf { it.isNotBlank() },
-                    aoConcluir = {
-                        nav.navigate(Rotas.LOGIN) { popUpTo(Rotas.LOGIN) { inclusive = true } }
-                    },
-                )
-            }
+        SessaoUi.Deslogada -> AuthNavHost(vm)
+        is SessaoUi.Logada -> EstruturaLogada(vm)
+    }
+}
+
+@Composable
+private fun AuthNavHost(
+    vm: SessaoViewModel,
+    nav: NavHostController = rememberNavController(),
+) {
+    NavHost(nav, startDestination = Rotas.LOGIN) {
+        composable(Rotas.LOGIN) {
+            TelaAuth(
+                vm,
+                // SessaoViewModel.entrar/criarConta já troca estado para
+                // Logada; a recomposição acima monta EstruturaLogada (HOME).
+                aoEntrar = {},
+                aoRecuperar = { nav.navigate(Rotas.RECUPERAR) },
+            )
         }
-        is SessaoUi.Logada -> EstruturaLogada(vm, nav)
+        composable(Rotas.RECUPERAR) {
+            TelaRecuperarSenha(
+                vm,
+                aoVoltarLogin = { nav.popBackStack() },
+            )
+        }
+        composable(
+            Rotas.REDEFINIR,
+            arguments = listOf(navArgument("token") {
+                type = NavType.StringType
+                defaultValue = ""
+                nullable = true
+            }),
+        ) { entrada ->
+            TelaRedefinirSenha(
+                vm,
+                token = entrada.arguments?.getString("token")?.takeIf { it.isNotBlank() },
+                aoConcluir = {
+                    nav.navigate(Rotas.LOGIN) { popUpTo(Rotas.LOGIN) { inclusive = true } }
+                },
+            )
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
+private fun EstruturaLogada(
+    vm: SessaoViewModel,
+    nav: NavHostController = rememberNavController(),
+) {
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val escopo = rememberCoroutineScope()
     val backStack by nav.currentBackStackEntryAsState()
@@ -180,7 +194,7 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
                 aoAbrirPerfil = { navegar(Rotas.PERFIL) },
                 aoSair = {
                     escopo.launch { drawer.close() }
-                    vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                    vm.sair {}
                 },
             )
         },
@@ -218,7 +232,7 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
                 composable(Rotas.HOME) {
                     HomeScreen(
                         aoSessaoExpirada = {
-                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                            vm.sair {}
                         },
                         aoGerenciarContas = {
                             nav.navigate(Rotas.CONTAS) { launchSingleTop = true }
@@ -231,67 +245,66 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
                 composable(Rotas.LANCAMENTOS) {
                     LancamentosScreen(
                         aoSessaoExpirada = {
-                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                            vm.sair {}
                         },
                     )
                 }
                 composable(Rotas.OFX) {
                     OfxScreen(
                         aoSessaoExpirada = {
-                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                            vm.sair {}
                         },
                     )
                 }
                 composable(Rotas.RELATORIOS) {
                     RelatoriosScreen(
                         aoSessaoExpirada = {
-                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                            vm.sair {}
                         },
                     )
                 }
                 composable(Rotas.CATEGORIAS) {
                     CategoriasScreen(
                         aoSessaoExpirada = {
-                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                            vm.sair {}
                         },
                     )
                 }
                 composable(Rotas.CONTAS) {
                     ContasScreen(
                         aoSessaoExpirada = {
-                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                            vm.sair {}
                         },
                     )
                 }
                 composable(Rotas.FORMAS) {
                     FormasScreen(
                         aoSessaoExpirada = {
-                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                            vm.sair {}
                         },
                     )
                 }
                 composable(Rotas.AUDITORIA) {
                     AuditoriaScreen(
                         aoSessaoExpirada = {
-                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                            vm.sair {}
                         },
                     )
                 }
                 composable(Rotas.CONFIG) {
                     ConfigScreen(
                         aoSessaoExpirada = {
-                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                            vm.sair {}
                         },
                     )
                 }
                 composable(Rotas.PERFIL) {
                     PerfilScreen(
                         aoSessaoExpirada = {
-                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                            vm.sair {}
                         },
                     )
                 }
-                composable(Rotas.LOGIN) { TelaSimples("Sessão encerrada") }
             }
         }
     }
