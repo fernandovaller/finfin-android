@@ -1,6 +1,8 @@
 package com.fvcode.finfin.ui.lancamentos
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,18 +10,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -40,17 +46,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fvcode.finfin.core.util.emReais
 import com.fvcode.finfin.core.util.formatarData
+import com.fvcode.finfin.core.util.mesLabel
 import com.fvcode.finfin.ui.components.FiltroConta
-import com.fvcode.finfin.ui.components.MesNav
+import com.fvcode.finfin.ui.components.FinfinCard
+import com.fvcode.finfin.ui.components.MesNavEscuro
 import java.text.NumberFormat
 import java.util.Locale
+
+private val VERDE = Color(0xFF16A34A)
+private val VERMELHO = Color(0xFFDC2626)
 
 /** Espelha `Lancamentos.tsx`: lista + modais novo/edição/`ConfirmarExclusao`. */
 @Composable
@@ -67,49 +80,65 @@ fun LancamentosScreen(
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        MesNav(
+        MesNavEscuro(
             mes = estado.mes,
             aoAnterior = { vm.mudarMes(-1) },
             aoProximo = { vm.mudarMes(1) },
             aoHoje = { vm.irParaHoje() },
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            FiltroConta(
-                contas = estado.contas.map { it.id to (it.nome + if (it.principal) " ★" else "") },
-                selecionada = estado.contaFiltro,
-                aoTrocar = { vm.trocarConta(it) },
-            )
-        }
+        FiltroConta(
+            contas = estado.contas.map { it.id to (it.nome + if (it.principal) " ★" else "") },
+            selecionada = estado.contaFiltro,
+            aoTrocar = { vm.trocarConta(it) },
+        )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("todos" to "Todos", "receita" to "Receitas", "despesa" to "Despesas").forEach { (v, r) ->
-                FilterChip(
-                    selected = estado.filtroTipo == v,
-                    onClick = { vm.trocarFiltroTipo(v) },
-                    label = { Text(r) },
-                )
-            }
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { vm.abrirNovo("receita") }, modifier = Modifier.weight(1f)) {
-                Icon(Icons.Filled.Add, contentDescription = null)
-                Spacer(Modifier.width(4.dp))
-                Text("Receita")
-            }
-            Button(onClick = { vm.abrirNovo("despesa") }, modifier = Modifier.weight(1f)) {
-                Icon(Icons.Filled.Add, contentDescription = null)
-                Spacer(Modifier.width(4.dp))
-                Text("Despesa")
+        FinfinCard(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Filtros", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("todos" to "Todos", "receita" to "Receitas", "despesa" to "Despesas").forEach { (v, r) ->
+                        FilterChip(
+                            selected = estado.filtroTipo == v,
+                            onClick = { vm.trocarFiltroTipo(v) },
+                            label = { Text(r) },
+                        )
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Button(
+                        onClick = { vm.abrirNovo("receita") },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.inverseSurface,
+                            contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                        ),
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Receita")
+                    }
+                    Button(
+                        onClick = { vm.abrirNovo("despesa") },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.inverseSurface,
+                            contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                        ),
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Despesa")
+                    }
+                }
             }
         }
 
         estado.erro?.let { msg ->
-            Card {
-                Column(Modifier.padding(12.dp)) {
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp)) {
                     Text(msg, color = MaterialTheme.colorScheme.error)
                     Spacer(Modifier.height(8.dp))
                     Button(onClick = { vm.recarregar() }) { Text("Tentar de novo") }
@@ -118,32 +147,49 @@ fun LancamentosScreen(
         }
 
         estado.info?.let { msg ->
-            Card {
-                Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(msg, modifier = Modifier.weight(1f))
                     TextButton(onClick = { vm.consumirInfo() }) { Text("OK") }
                 }
             }
         }
 
+        val receitas = estado.itens.filter { it.tipo == "receita" }
+        val despesas = estado.itens.filter { it.tipo == "despesa" }
+        val mostrarReceitas = estado.filtroTipo == "todos" || estado.filtroTipo == "receita"
+        val mostrarDespesas = estado.filtroTipo == "todos" || estado.filtroTipo == "despesa"
+
         if (estado.carregando && estado.itens.isEmpty()) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                CircularProgressIndicator()
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.Center) {
+                    CircularProgressIndicator()
+                }
             }
         }
 
-        val visiveis = estado.itens.filter { estado.filtroTipo == "todos" || it.tipo == estado.filtroTipo }
-        if (!estado.carregando && visiveis.isEmpty()) {
-            Text("Sem lançamentos no mês.", style = MaterialTheme.typography.bodyMedium)
-        }
-        visiveis.forEachIndexed { i, item ->
-            LinhaLancamento(
-                item = item,
-                contaNome = vm.contaPorId(item.contaId),
-                aoEditar = { vm.abrirEdicao(item) },
-                aoExcluir = { vm.pedirExclusao(item) },
+        if (mostrarReceitas) {
+            CardLancamentos(
+                titulo = "Receitas",
+                mes = estado.mes,
+                itens = receitas,
+                vazioTexto = "Sem receitas no mês.",
+                contaNomeDe = { vm.contaPorId(it) },
+                aoEditar = { vm.abrirEdicao(it) },
+                aoExcluir = { vm.pedirExclusao(it) },
             )
-            if (i < visiveis.lastIndex) HorizontalDivider()
+        }
+
+        if (mostrarDespesas) {
+            CardLancamentos(
+                titulo = "Despesas",
+                mes = estado.mes,
+                itens = despesas,
+                vazioTexto = "Sem despesas no mês.",
+                contaNomeDe = { vm.contaPorId(it) },
+                aoEditar = { vm.abrirEdicao(it) },
+                aoExcluir = { vm.pedirExclusao(it) },
+            )
         }
     }
 
@@ -183,37 +229,164 @@ fun LancamentosScreen(
 }
 
 @Composable
+private fun CardLancamentos(
+    titulo: String,
+    mes: String,
+    itens: List<Lancamento>,
+    vazioTexto: String,
+    contaNomeDe: (Int?) -> String,
+    aoEditar: (Lancamento) -> Unit,
+    aoExcluir: (Lancamento) -> Unit,
+) {
+    FinfinCard(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    titulo,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    "· ${mesLabel(mes)} · ${itens.size}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            if (itens.isEmpty()) {
+                Text(vazioTexto, style = MaterialTheme.typography.bodyMedium)
+            }
+            itens.forEachIndexed { i, item ->
+                LinhaLancamento(
+                    item = item,
+                    contaNome = contaNomeDe(item.contaId),
+                    aoEditar = { aoEditar(item) },
+                    aoExcluir = { aoExcluir(item) },
+                )
+                if (i < itens.lastIndex) HorizontalDivider()
+            }
+        }
+    }
+}
+
+@Composable
 private fun LinhaLancamento(
     item: Lancamento,
     contaNome: String,
     aoEditar: () -> Unit,
     aoExcluir: () -> Unit,
 ) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            if (item.tipo == "receita") "+" else "−",
-            color = if (item.tipo == "receita") Color(0xFF16A34A) else MaterialTheme.colorScheme.error,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(Modifier.width(8.dp))
-        Column(Modifier.weight(1f)) {
-            Text(item.titulo.ifBlank { item.categoria }, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+    var menuAberto by remember { mutableStateOf(false) }
+    val receita = item.tipo == "receita"
+    val corSinal = if (receita) VERDE else VERMELHO
+    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier.size(36.dp)
+                .clip(CircleShape)
+                .background(corSinal.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center,
+        ) {
             Text(
-                buildString {
-                    append(item.categoria)
-                    append(" • ")
-                    append(formatarData(item.data))
-                    if (contaNome.isNotBlank()) append(" • $contaNome")
-                    if (item.parcelaAtual != null && item.parcelaTotal != null) {
-                        append(" • (${item.parcelaAtual}/${item.parcelaTotal})")
-                    }
-                },
-                style = MaterialTheme.typography.bodySmall,
+                if (receita) "+" else "−",
+                color = corSinal,
+                fontWeight = FontWeight.Bold,
             )
         }
-        Text(item.valor.emReais(), fontWeight = FontWeight.SemiBold)
-        IconButton(onClick = aoEditar) { Icon(Icons.Filled.Edit, contentDescription = "Editar") }
-        IconButton(onClick = aoExcluir) { Icon(Icons.Filled.Delete, contentDescription = "Excluir") }
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                item.titulo.ifBlank { item.categoria },
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    buildString {
+                        append(formatarData(item.data))
+                        if (contaNome.isNotBlank()) append(" · $contaNome")
+                        if (item.parcelaAtual != null && item.parcelaTotal != null) {
+                            append(" (${item.parcelaAtual}/${item.parcelaTotal})")
+                        }
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.width(6.dp))
+                BadgeCategoria(item.categoria)
+            }
+            if (item.formaPagamento.isNotBlank()) {
+                Text(
+                    item.formaPagamento,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        Spacer(Modifier.width(8.dp))
+        Text(
+            item.valor.emReais(),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = if (receita) VERDE else MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+        )
+        // Um único overflow substitui os 2 IconButtons (economia de ~56dp por linha).
+        Box {
+            IconButton(
+                onClick = { menuAberto = true },
+                modifier = Modifier.size(32.dp),
+            ) {
+                Icon(
+                    Icons.Filled.MoreVert,
+                    contentDescription = "Ações",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            DropdownMenu(expanded = menuAberto, onDismissRequest = { menuAberto = false }) {
+                DropdownMenuItem(
+                    text = { Text("Editar") },
+                    leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
+                    onClick = {
+                        menuAberto = false
+                        aoEditar()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text("Excluir", color = MaterialTheme.colorScheme.error) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Filled.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                    onClick = {
+                        menuAberto = false
+                        aoExcluir()
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BadgeCategoria(nome: String) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+    ) {
+        Text(nome, color = MaterialTheme.colorScheme.onSecondaryContainer, style = MaterialTheme.typography.labelSmall, maxLines = 1)
     }
 }
 
