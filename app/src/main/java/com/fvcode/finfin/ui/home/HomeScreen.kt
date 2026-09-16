@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.NorthEast
 import androidx.compose.material.icons.filled.SouthEast
 import androidx.compose.material3.Button
@@ -73,23 +72,6 @@ fun HomeScreen(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier.size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.inverseSurface),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Filled.Home,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.inverseOnSurface,
-                )
-            }
-            Spacer(Modifier.width(12.dp))
-            Text("Home", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        }
-
         MesNavEscuro(
             mes = estado.mes,
             aoAnterior = { vm.mudarMes(-1) },
