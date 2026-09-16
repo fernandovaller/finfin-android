@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 sealed interface DialogoCategoria {
     data object Oculto : DialogoCategoria
-    data object Novo : DialogoCategoria
+    data class Novo(val tipo: String) : DialogoCategoria
     data class Edicao(val item: Categoria) : DialogoCategoria
     data class Exclusao(val item: Categoria) : DialogoCategoria
 }
@@ -25,7 +25,7 @@ data class CategoriasUiState(
     val erro: String? = null,
     val sessaoExpirada: Boolean = false,
     val itens: List<Categoria> = emptyList(),
-    val aba: String = "despesa", // despesa|receita
+    val filtroTipo: String = "todos", // todos|receita|despesa
     val dialogo: DialogoCategoria = DialogoCategoria.Oculto,
     val salvando: Boolean = false,
     val erroForm: String? = null,
@@ -47,11 +47,11 @@ class CategoriasViewModel @Inject constructor(
     fun recarregar() = carregar()
 
     fun trocarAba(aba: String) {
-        _estado.value = _estado.value.copy(aba = aba)
+        _estado.value = _estado.value.copy(filtroTipo = aba)
     }
 
-    fun abrirNovo() {
-        _estado.value = _estado.value.copy(dialogo = DialogoCategoria.Novo, erroForm = null)
+    fun abrirNovo(tipo: String) {
+        _estado.value = _estado.value.copy(dialogo = DialogoCategoria.Novo(tipo), erroForm = null)
     }
 
     fun abrirEdicao(item: Categoria) {
@@ -76,7 +76,7 @@ class CategoriasViewModel @Inject constructor(
         _estado.value = _estado.value.copy(info = null)
     }
 
-    fun salvar(nome: String, cor: String, editando: Categoria?) {
+    fun salvar(nome: String, cor: String, tipo: String, editando: Categoria?) {
         if (nome.isBlank()) {
             _estado.value = _estado.value.copy(erroForm = "Informe o nome.")
             return
@@ -84,7 +84,7 @@ class CategoriasViewModel @Inject constructor(
         _estado.value = _estado.value.copy(salvando = true, erroForm = null)
         viewModelScope.launch {
             val resultado: ApiResult<String> = if (editando == null) {
-                when (val r = repo.criarCategoria(CategoriaCorpo(nome.trim(), _estado.value.aba, cor))) {
+                when (val r = repo.criarCategoria(CategoriaCorpo(nome.trim(), tipo, cor))) {
                     is ApiResult.Ok -> ApiResult.Ok("Categoria criada")
                     is ApiResult.Erro -> r
                 }
