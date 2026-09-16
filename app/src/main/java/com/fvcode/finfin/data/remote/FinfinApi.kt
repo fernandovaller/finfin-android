@@ -48,6 +48,7 @@ interface FinfinApi {
     @POST("auth/logout") suspend fun logout()
     @GET("auth/eu") suspend fun eu(): EuResposta
     @PUT("auth/perfil") suspend fun atualizarPerfil(@Body corpo: PerfilCorpo): Sessao
+    @PUT("auth/perfil") suspend fun atualizarPerfilRaw(@Body corpo: JsonObject): Sessao
     @PUT("auth/senha") suspend fun trocarSenha(@Body corpo: TrocarSenhaCorpo)
     @GET("auth/integracoes") suspend fun integracoes(): IntegracoesResposta
     @PUT("auth/integracoes") suspend fun salvarIntegracoes(@Body corpo: IntegracoesCorpo)

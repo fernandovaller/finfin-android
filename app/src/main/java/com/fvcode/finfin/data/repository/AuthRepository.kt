@@ -77,6 +77,12 @@ class AuthRepository @Inject constructor(
         return aoResultado({ api.atualizarPerfil(corpo) }, semToken)
     }
 
+    /** Perfil com avatar explícito (troca ou remoção com null serializado). */
+    suspend fun atualizarPerfilRaw(corpo: com.google.gson.JsonObject): ApiResult<Sessao> {
+        val semToken = !temSessao()
+        return aoResultado({ api.atualizarPerfilRaw(corpo) }, semToken)
+    }
+
     suspend fun trocarSenha(atual: String, nova: String): ApiResult<Unit> {
         val semToken = !temSessao()
         return aoResultado({ api.trocarSenha(TrocarSenhaCorpo(atual, nova)) }, semToken)

@@ -12,6 +12,8 @@ import com.fvcode.finfin.data.model.Contagem
 import com.fvcode.finfin.data.model.DemoStatus
 import com.fvcode.finfin.data.model.Despesa
 import com.fvcode.finfin.data.model.DespesaCorpo
+import com.fvcode.finfin.data.model.AuditoriaPagina
+import com.fvcode.finfin.data.model.LimpezaResposta
 import com.fvcode.finfin.data.model.ExcluirGrupoResposta
 import com.fvcode.finfin.data.model.FormaCorpo
 import com.fvcode.finfin.data.model.FormaPagamento
@@ -99,4 +101,23 @@ class FinfinRepository @Inject constructor(
     suspend fun integracoes() = chamada { api.integracoes() }
     suspend fun salvarIntegracoes(chave: String?) =
         chamada { api.salvarIntegracoes(IntegracoesCorpo(chave)) }
+
+    // Auditoria (05-auditoria.md)
+    suspend fun auditoria(
+        modulo: String?,
+        acao: String?,
+        descricao: String?,
+        dataInicio: String?,
+        dataFim: String?,
+        pagina: Int,
+        porPagina: Int = 20,
+    ): ApiResult<AuditoriaPagina> = chamada {
+        api.auditoria(modulo, acao, descricao, dataInicio, dataFim, pagina, porPagina)
+    }
+
+    suspend fun restaurarAuditoria(id: Int): ApiResult<Unit> =
+        chamada { api.restaurarAuditoria(id) }
+
+    suspend fun limparAuditoria(antesDe: String?): ApiResult<LimpezaResposta> =
+        chamada { api.limparAuditoria(antesDe) }
 }

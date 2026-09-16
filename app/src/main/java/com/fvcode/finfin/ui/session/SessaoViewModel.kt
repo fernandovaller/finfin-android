@@ -86,6 +86,11 @@ class SessaoViewModel @Inject constructor(
         }
     }
 
+    /** `sincronizar(u)` — atualiza após PUT perfil/senha. */
+    fun sincronizar(usuario: Usuario) {
+        _estado.value = SessaoUi.Logada(usuario)
+    }
+
     fun salvarTema(tema: String) {
         viewModelScope.launch { prefs.salvarTema(tema) }
     }

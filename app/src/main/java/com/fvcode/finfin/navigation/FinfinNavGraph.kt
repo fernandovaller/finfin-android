@@ -21,9 +21,11 @@ import androidx.navigation.compose.rememberNavController
 import com.fvcode.finfin.ui.screens.TelaCarga
 import com.fvcode.finfin.ui.screens.TelaLogin
 import com.fvcode.finfin.ui.screens.TelaSimples
+import com.fvcode.finfin.ui.auditoria.AuditoriaScreen
 import com.fvcode.finfin.ui.categorias.CategoriasScreen
 import com.fvcode.finfin.ui.config.ConfigScreen
 import com.fvcode.finfin.ui.contas.ContasScreen
+import com.fvcode.finfin.ui.perfil.PerfilScreen
 import com.fvcode.finfin.ui.formas.FormasScreen
 import com.fvcode.finfin.ui.home.HomeScreen
 import com.fvcode.finfin.ui.lancamentos.LancamentosScreen
@@ -136,7 +138,13 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
                         },
                     )
                 }
-                composable(Rotas.AUDITORIA) { TelaSimples("Auditoria") }
+                composable(Rotas.AUDITORIA) {
+                    AuditoriaScreen(
+                        aoSessaoExpirada = {
+                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                        },
+                    )
+                }
                 composable(Rotas.CONFIG) {
                     ConfigScreen(
                         aoSessaoExpirada = {
@@ -144,7 +152,13 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
                         },
                     )
                 }
-                composable(Rotas.PERFIL) { TelaSimples("Perfil") }
+                composable(Rotas.PERFIL) {
+                    PerfilScreen(
+                        aoSessaoExpirada = {
+                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                        },
+                    )
+                }
                 composable(Rotas.LOGIN) { TelaSimples("Sessão encerrada") }
             }
         }
