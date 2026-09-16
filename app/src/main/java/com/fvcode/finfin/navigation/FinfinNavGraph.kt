@@ -23,6 +23,7 @@ import com.fvcode.finfin.ui.screens.TelaLogin
 import com.fvcode.finfin.ui.screens.TelaSimples
 import com.fvcode.finfin.ui.home.HomeScreen
 import com.fvcode.finfin.ui.lancamentos.LancamentosScreen
+import com.fvcode.finfin.ui.relatorios.RelatoriosScreen
 import com.fvcode.finfin.ui.session.SessaoUi
 import com.fvcode.finfin.ui.session.SessaoViewModel
 import kotlinx.coroutines.launch
@@ -103,7 +104,13 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
                     )
                 }
                 composable(Rotas.OFX) { TelaSimples("Importar OFX") }
-                composable(Rotas.RELATORIOS) { TelaSimples("Relatórios") }
+                composable(Rotas.RELATORIOS) {
+                    RelatoriosScreen(
+                        aoSessaoExpirada = {
+                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                        },
+                    )
+                }
                 composable(Rotas.CATEGORIAS) { TelaSimples("Categorias") }
                 composable(Rotas.CONTAS) { TelaSimples("Contas") }
                 composable(Rotas.FORMAS) { TelaSimples("Formas de pagamento") }
