@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.fvcode.finfin.ui.components.FinfinCard
 import com.fvcode.finfin.ui.components.SecaoTitulo
 import com.fvcode.finfin.ui.home.COR_POR_NOME
 import com.fvcode.finfin.ui.session.SessaoViewModel
@@ -145,7 +146,7 @@ fun PerfilScreen(
             return@Column
         }
 
-        Card {
+        FinfinCard {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AvatarPerfil(

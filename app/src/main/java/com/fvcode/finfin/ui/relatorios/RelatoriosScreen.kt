@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fvcode.finfin.core.util.deslocarMes
 import com.fvcode.finfin.core.util.emReais
+import com.fvcode.finfin.ui.components.FinfinCard
 import com.fvcode.finfin.ui.components.MesNav
 import com.fvcode.finfin.ui.components.SecaoTitulo
 import com.fvcode.finfin.ui.home.GraficoBarrasMensal
@@ -306,7 +307,7 @@ private fun CartaoTotal(
     modifier: Modifier = Modifier,
     destaque: Boolean = false,
 ) {
-    Card(modifier) {
+    FinfinCard(modifier) {
         Column(Modifier.padding(12.dp)) {
             Text(titulo, style = MaterialTheme.typography.labelMedium)
             Text(

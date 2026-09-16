@@ -2,6 +2,7 @@ package com.fvcode.finfin.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
@@ -95,7 +96,9 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
             )
         },
     ) {
-        Scaffold { inner ->
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
+        ) { inner ->
             NavHost(nav, startDestination = Rotas.HOME, modifier = Modifier.padding(inner)) {
                 composable(Rotas.HOME) {
                     HomeScreen(

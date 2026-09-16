@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.SouthEast
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +47,7 @@ import com.fvcode.finfin.core.util.mesLabel
 import com.fvcode.finfin.core.util.pluralLancamentos
 import com.fvcode.finfin.data.model.Conta
 import com.fvcode.finfin.ui.components.FiltroConta
+import com.fvcode.finfin.ui.components.FinfinCard
 import com.fvcode.finfin.ui.components.MesNavEscuro
 import com.fvcode.finfin.ui.components.SecaoTitulo
 
@@ -132,7 +132,7 @@ fun HomeScreen(
             aoGerenciar = aoGerenciarContas,
         )
 
-        Card(modifier = Modifier.fillMaxWidth()) {
+        FinfinCard(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     "Receitas x Despesas",
@@ -145,7 +145,7 @@ fun HomeScreen(
             }
         }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
+        FinfinCard(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     "Despesas por categoria · ${mesLabel(estado.mes)}",
@@ -177,7 +177,7 @@ private fun SecaoAtividadeRecente(
     corDeCategoria: (String) -> String?,
     aoNovo: () -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    FinfinCard(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -316,7 +316,7 @@ private fun CartaoResumo(
     seta: ImageVector,
     corSeta: Color,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    FinfinCard(modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.Top) {
             Column(Modifier.weight(1f)) {
                 Text(titulo, style = MaterialTheme.typography.bodyMedium)
@@ -352,7 +352,7 @@ private fun SecaoContas(
     mesDe: (Int) -> Pair<Double, Double>?,
     aoGerenciar: () -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    FinfinCard(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -393,10 +393,7 @@ private fun CartaoConta(
 ) {
     val (recMes, desMes) = mes
     val saldoMes = recMes - desMes
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-        ),
+    FinfinCard(
         modifier = Modifier.width(210.dp),
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {

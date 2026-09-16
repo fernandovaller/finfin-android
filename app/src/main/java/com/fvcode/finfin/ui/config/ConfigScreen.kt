@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fvcode.finfin.BuildConfig
 import com.fvcode.finfin.core.datastore.FinfinPreferences
+import com.fvcode.finfin.ui.components.FinfinCard
 import com.fvcode.finfin.ui.components.SecaoTitulo
 import com.fvcode.finfin.ui.session.SessaoViewModel
 
@@ -245,7 +246,7 @@ private fun AbaGeral(estado: ConfigUiState, tema: String, aoTema: (String) -> Un
 
 @Composable
 private fun CartaoNumero(titulo: String, valor: Int?, modifier: Modifier = Modifier) {
-    Card(modifier) {
+    FinfinCard(modifier) {
         Column(Modifier.padding(12.dp)) {
             Text(titulo, style = MaterialTheme.typography.labelMedium)
             Text(
@@ -372,7 +373,7 @@ private fun CartaoPerigo(titulo: String, descricao: String, ocupado: Boolean, ao
     var confirmacao by remember { mutableStateOf("") }
     var confirmar by remember { mutableStateOf(false) }
     val liberado = confirmacao.trim() == "APAGAR"
-    Card {
+    FinfinCard {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(titulo, fontWeight = FontWeight.Bold)
             Text(descricao, style = MaterialTheme.typography.bodyMedium)
