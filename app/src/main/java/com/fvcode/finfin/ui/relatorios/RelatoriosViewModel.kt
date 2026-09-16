@@ -50,6 +50,22 @@ class RelatoriosViewModel @Inject constructor(
         _estado.value = _estado.value.copy(filtros = f)
     }
 
+    /** Limpa conta/categorias/forma/busca/min/max, mantendo o período selecionado. */
+    fun limparFiltros() {
+        val atual = _estado.value.filtros
+        _estado.value = _estado.value.copy(
+            filtros = atual.copy(
+                contaId = null,
+                catReceita = "",
+                catDespesa = "",
+                forma = "",
+                busca = "",
+                minTxt = "",
+                maxTxt = "",
+            ),
+        )
+    }
+
     fun consumirSessaoExpirada() {
         _estado.value = _estado.value.copy(sessaoExpirada = false)
     }

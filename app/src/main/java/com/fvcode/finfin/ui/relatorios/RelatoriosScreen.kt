@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.NorthEast
 import androidx.compose.material.icons.filled.SouthEast
 import androidx.compose.material3.Button
@@ -35,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -58,6 +60,8 @@ import com.fvcode.finfin.ui.components.FinfinCard
 import com.fvcode.finfin.ui.components.MesNavEscuro
 import com.fvcode.finfin.ui.home.GraficoBarrasMensal
 import com.fvcode.finfin.ui.home.GraficoDonut
+import java.text.NumberFormat
+import java.util.Locale
 
 private val VERDE = Color(0xFF16A34A)
 private val VERMELHO = Color(0xFFDC2626)
@@ -125,21 +129,39 @@ fun RelatoriosScreen(
             }
         }
 
-        if (resultado != null && intervalo != null) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Button(
-                    onClick = {
-                        ExportarRelatorio.imprimir(
-                            contexto,
-                            "finfin-relatorio",
-                            ExportarRelatorio.html(ExportarRelatorio.descricaoPeriodo(f, intervalo), resultado),
-                        )
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.inverseSurface,
-                        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
-                    ),
-                ) { Text("Exportar PDF") }
+        val temFiltros = f.contaId != null || f.catReceita.isNotBlank() || f.catDespesa.isNotBlank() ||
+            f.forma.isNotBlank() || f.busca.isNotBlank() || f.minTxt.isNotBlank() || f.maxTxt.isNotBlank()
+        val podeExportar = resultado != null && intervalo != null
+        if (temFiltros || podeExportar) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (temFiltros) {
+                    TextButton(onClick = { vm.limparFiltros() }) {
+                        Icon(Icons.Filled.Clear, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Limpar filtros")
+                    }
+                } else {
+                    Spacer(Modifier.width(8.dp))
+                }
+                if (podeExportar) {
+                    Button(
+                        onClick = {
+                            ExportarRelatorio.imprimir(
+                                contexto,
+                                "finfin-relatorio",
+                                ExportarRelatorio.html(ExportarRelatorio.descricaoPeriodo(f, intervalo!!), resultado!!),
+                            )
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.inverseSurface,
+                            contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                        ),
+                    ) { Text("Exportar PDF") }
+                }
             }
         }
 
@@ -192,39 +214,40 @@ fun RelatoriosScreen(
                         modifier = Modifier.weight(1f),
                     )
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SeletorFiltro(
-                        rotulo = "Forma",
-                        valor = f.forma.ifBlank { "Todas" },
-                        opcoes = listOf("Todas") + estado.formas,
-                        aoEscolher = { vm.atualizarFiltros(f.copy(forma = if (it == "Todas") "" else it)) },
-                        modifier = Modifier.weight(1f),
-                    )
-                    OutlinedTextField(
-                        value = f.busca,
-                        onValueChange = { vm.atualizarFiltros(f.copy(busca = it)) },
-                        label = { Text("Buscar") },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                    )
-                }
+                SeletorFiltro(
+                    rotulo = "Forma",
+                    valor = f.forma.ifBlank { "Todas" },
+                    opcoes = listOf("Todas") + estado.formas,
+                    aoEscolher = { vm.atualizarFiltros(f.copy(forma = if (it == "Todas") "" else it)) },
+                )
+                OutlinedTextField(
+                    value = f.busca,
+                    onValueChange = { vm.atualizarFiltros(f.copy(busca = it)) },
+                    label = { Text("Buscar") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = f.minTxt,
-                        onValueChange = { vm.atualizarFiltros(f.copy(minTxt = it)) },
+                        onValueChange = {
+                            vm.atualizarFiltros(f.copy(minTxt = formatarFiltroMoeda(it)))
+                        },
                         label = { Text("Mín (ex. 1.200,50)") },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         isError = f.minTxt.isNotBlank() && parseValorBR(f.minTxt) == null,
                     )
                     OutlinedTextField(
                         value = f.maxTxt,
-                        onValueChange = { vm.atualizarFiltros(f.copy(maxTxt = it)) },
+                        onValueChange = {
+                            vm.atualizarFiltros(f.copy(maxTxt = formatarFiltroMoeda(it)))
+                        },
                         label = { Text("Máx") },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         isError = f.maxTxt.isNotBlank() && parseValorBR(f.maxTxt) == null,
                     )
                 }
@@ -461,4 +484,15 @@ private fun LinhaTotal(nome: String, total: Double) {
         Spacer(Modifier.width(8.dp))
         Text(total.emReais(), fontWeight = FontWeight.SemiBold)
     }
+}
+
+/** Máscara de moeda p/ Mín/Máx (mesmo padrão do form de Lançamentos): dígitos → pt-BR 2 casas. */
+private fun formatarFiltroMoeda(entrada: String): String {
+    val digitos = entrada.filter(Char::isDigit).take(12)
+    if (digitos.isEmpty()) return ""
+    val n = digitos.toLongOrNull() ?: 0
+    return NumberFormat.getNumberInstance(Locale("pt", "BR")).apply {
+        minimumFractionDigits = 2
+        maximumFractionDigits = 2
+    }.format(n / 100.0)
 }
