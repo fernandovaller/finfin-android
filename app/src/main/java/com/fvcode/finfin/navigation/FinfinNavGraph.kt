@@ -40,6 +40,7 @@ private data class Destino(val rota: String, val titulo: String, val grupo: Stri
 private val destinos = listOf(
     Destino(Rotas.HOME, "Início", "Principal"),
     Destino(Rotas.LANCAMENTOS, "Lançamentos", "Principal"),
+    Destino(Rotas.OFX, "Importar OFX", "Principal"),
     Destino(Rotas.RELATORIOS, "Relatórios", "Principal"),
     Destino(Rotas.CATEGORIAS, "Categorias", "Cadastros"),
     Destino(Rotas.CONTAS, "Contas", "Cadastros"),
