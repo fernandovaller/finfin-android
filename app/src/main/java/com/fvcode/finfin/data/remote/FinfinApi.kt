@@ -15,6 +15,8 @@ import com.fvcode.finfin.data.model.EuResposta
 import com.fvcode.finfin.data.model.ExcluirGrupoResposta
 import com.fvcode.finfin.data.model.FormaCorpo
 import com.fvcode.finfin.data.model.FormaPagamento
+import com.fvcode.finfin.data.model.ImportarOfxCorpo
+import com.fvcode.finfin.data.model.ImportarOfxResposta
 import com.fvcode.finfin.data.model.IntegracoesCorpo
 import com.fvcode.finfin.data.model.IntegracoesResposta
 import com.fvcode.finfin.data.model.LimpezaResposta
@@ -114,6 +116,7 @@ interface FinfinApi {
     @GET("exportar") suspend fun exportar(): JsonObject
     @GET("exportar/csv") suspend fun exportarCsv(@Query("tipo") tipo: String): ResponseBody
     @POST("importar") suspend fun importar(@Body corpo: JsonObject): JsonObject
+    @POST("importar/ofx") suspend fun importarOfx(@Body corpo: ImportarOfxCorpo): ImportarOfxResposta
     @DELETE("dados/lancamentos") suspend fun apagarLancamentos(): JsonObject
     @DELETE("dados/tudo") suspend fun apagarTudo(): JsonObject
     @GET("dados/demonstracao") suspend fun statusDemo(): JsonObject

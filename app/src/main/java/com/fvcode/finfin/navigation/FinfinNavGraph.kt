@@ -25,6 +25,7 @@ import com.fvcode.finfin.ui.auditoria.AuditoriaScreen
 import com.fvcode.finfin.ui.categorias.CategoriasScreen
 import com.fvcode.finfin.ui.config.ConfigScreen
 import com.fvcode.finfin.ui.contas.ContasScreen
+import com.fvcode.finfin.ui.ofx.OfxScreen
 import com.fvcode.finfin.ui.perfil.PerfilScreen
 import com.fvcode.finfin.ui.formas.FormasScreen
 import com.fvcode.finfin.ui.home.HomeScreen
@@ -109,7 +110,13 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
                         },
                     )
                 }
-                composable(Rotas.OFX) { TelaSimples("Importar OFX") }
+                composable(Rotas.OFX) {
+                    OfxScreen(
+                        aoSessaoExpirada = {
+                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                        },
+                    )
+                }
                 composable(Rotas.RELATORIOS) {
                     RelatoriosScreen(
                         aoSessaoExpirada = {

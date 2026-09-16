@@ -18,6 +18,7 @@ import com.fvcode.finfin.data.model.ExcluirGrupoResposta
 import com.fvcode.finfin.data.model.FormaCorpo
 import com.fvcode.finfin.data.model.FormaPagamento
 import com.fvcode.finfin.data.model.ImportResult
+import com.fvcode.finfin.data.model.ImportarOfxCorpo
 import com.fvcode.finfin.data.model.IntegracoesCorpo
 import com.fvcode.finfin.data.model.Receita
 import com.fvcode.finfin.data.model.ReceitaCorpo
@@ -88,6 +89,8 @@ class FinfinRepository @Inject constructor(
         }
         com.google.gson.Gson().fromJson(api.importar(corpo), ImportResult::class.java)
     }
+
+    suspend fun importarOfx(corpo: ImportarOfxCorpo) = chamada { api.importarOfx(corpo) }
 
     suspend fun demoStatus(): ApiResult<DemoStatus> = chamada {
         com.google.gson.Gson().fromJson(api.statusDemo(), DemoStatus::class.java)

@@ -170,3 +170,27 @@ data class ImportResult(
     val receitas: Int = 0,
     val despesas: Int = 0,
 )
+
+// --- Importação OFX (06-import-export-demo.md) ---
+
+data class OfxItemEnvio(
+    val data: String,
+    val valor: Double,
+    val tipo: String, // receita|despesa
+    val descricao: String = "",
+    val fitid: String? = null,
+)
+
+data class ImportarOfxCorpo(
+    val contaId: Int,
+    val categoriaReceita: String,
+    val categoriaDespesa: String,
+    val formaPagamento: String? = null,
+    val itens: List<OfxItemEnvio>,
+)
+
+data class ImportarOfxResposta(
+    val receitas: Int = 0,
+    val despesas: Int = 0,
+    val ignorados: Int = 0,
+)
