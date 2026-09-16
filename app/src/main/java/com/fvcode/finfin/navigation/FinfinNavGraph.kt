@@ -21,6 +21,9 @@ import androidx.navigation.compose.rememberNavController
 import com.fvcode.finfin.ui.screens.TelaCarga
 import com.fvcode.finfin.ui.screens.TelaLogin
 import com.fvcode.finfin.ui.screens.TelaSimples
+import com.fvcode.finfin.ui.categorias.CategoriasScreen
+import com.fvcode.finfin.ui.contas.ContasScreen
+import com.fvcode.finfin.ui.formas.FormasScreen
 import com.fvcode.finfin.ui.home.HomeScreen
 import com.fvcode.finfin.ui.lancamentos.LancamentosScreen
 import com.fvcode.finfin.ui.relatorios.RelatoriosScreen
@@ -111,9 +114,27 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
                         },
                     )
                 }
-                composable(Rotas.CATEGORIAS) { TelaSimples("Categorias") }
-                composable(Rotas.CONTAS) { TelaSimples("Contas") }
-                composable(Rotas.FORMAS) { TelaSimples("Formas de pagamento") }
+                composable(Rotas.CATEGORIAS) {
+                    CategoriasScreen(
+                        aoSessaoExpirada = {
+                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                        },
+                    )
+                }
+                composable(Rotas.CONTAS) {
+                    ContasScreen(
+                        aoSessaoExpirada = {
+                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                        },
+                    )
+                }
+                composable(Rotas.FORMAS) {
+                    FormasScreen(
+                        aoSessaoExpirada = {
+                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                        },
+                    )
+                }
                 composable(Rotas.AUDITORIA) { TelaSimples("Auditoria") }
                 composable(Rotas.CONFIG) { TelaSimples("Configurações") }
                 composable(Rotas.PERFIL) { TelaSimples("Perfil") }

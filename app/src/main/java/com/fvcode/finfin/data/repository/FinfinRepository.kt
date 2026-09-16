@@ -59,9 +59,11 @@ class FinfinRepository @Inject constructor(
 
     suspend fun formas(): ApiResult<List<FormaPagamento>> = chamada { api.formas() }
     suspend fun criarForma(nome: String) = chamada { api.criarForma(FormaCorpo(nome)) }
+    suspend fun editarForma(id: Int, nome: String) = chamada { api.editarForma(id, FormaCorpo(nome)) }
     suspend fun excluirForma(id: Int): ApiResult<Unit> = chamada { api.excluirForma(id) }
 
     suspend fun contas(): ApiResult<List<Conta>> = chamada { api.contas() }
     suspend fun criarConta(c: ContaCorpo) = chamada { api.criarConta(c) }
+    suspend fun editarConta(id: Int, c: ContaCorpo) = chamada { api.editarConta(id, c) }
     suspend fun excluirConta(id: Int): ApiResult<Unit> = chamada { api.excluirConta(id) }
 }
