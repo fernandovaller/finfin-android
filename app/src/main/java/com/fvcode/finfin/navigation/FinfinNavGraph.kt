@@ -105,6 +105,9 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
                         aoGerenciarContas = {
                             nav.navigate(Rotas.CONTAS) { launchSingleTop = true }
                         },
+                        aoNovoLancamento = {
+                            nav.navigate(Rotas.LANCAMENTOS) { launchSingleTop = true }
+                        },
                     )
                 }
                 composable(Rotas.LANCAMENTOS) {

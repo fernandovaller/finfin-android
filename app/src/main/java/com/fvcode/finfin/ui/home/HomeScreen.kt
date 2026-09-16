@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.NorthEast
 import androidx.compose.material.icons.filled.SouthEast
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -58,6 +60,7 @@ fun HomeScreen(
     vm: HomeViewModel = hiltViewModel(),
     aoSessaoExpirada: () -> Unit = {},
     aoGerenciarContas: () -> Unit = {},
+    aoNovoLancamento: () -> Unit = {},
 ) {
     val estado by vm.estado.collectAsState()
 
@@ -155,38 +158,108 @@ fun HomeScreen(
             }
         }
 
-        SecaoTitulo("Atividade recente")
-        if (estado.recentes.isEmpty()) {
-            Text("Sem lançamentos no mês.", style = MaterialTheme.typography.bodyMedium)
-        } else {
-            estado.recentes.forEachIndexed { i, item ->
-                Row(
-                    Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        if (item.tipo == "receita") "+" else "−",
-                        color = if (item.tipo == "receita") VERDE else MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.width(20.dp),
-                    )
-                    Column(Modifier.weight(1f)) {
-                        Text(item.descricao, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+        SecaoAtividadeRecente(
+            mes = estado.mes,
+            recentes = estado.recentes,
+            contaNomeDe = { vm.contaPorId(it) },
+            corDeCategoria = { estado.corPorCategoria[it] },
+            aoNovo = aoNovoLancamento,
+        )
+    }
+}
+
+/** Card "Atividade recente · mês" com `+ Novo lançamento`, como no web. */
+@Composable
+private fun SecaoAtividadeRecente(
+    mes: String,
+    recentes: List<ItemRecente>,
+    contaNomeDe: (Int?) -> String,
+    corDeCategoria: (String) -> String?,
+    aoNovo: () -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "Atividade recente · ${mesLabel(mes)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f),
+                )
+                Button(
+                    onClick = aoNovo,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.inverseSurface,
+                        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    ),
+                ) { Text("+ Novo lançamento") }
+            }
+            if (recentes.isEmpty()) {
+                Text("Sem lançamentos no mês.", style = MaterialTheme.typography.bodyMedium)
+            } else {
+                recentes.forEachIndexed { i, item ->
+                    val receita = item.tipo == "receita"
+                    val corSinal = if (receita) VERDE else VERMELHO
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier.size(36.dp)
+                                .clip(CircleShape)
+                                .background(corSinal.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                if (receita) "+" else "−",
+                                color = corSinal,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                item.descricao,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    "${formatarData(item.data)} · ${contaNomeDe(item.contaId).ifBlank { "—" }}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                BadgeCategoria(item.categoria, corDeCategoria(item.categoria))
+                            }
+                        }
+                        Spacer(Modifier.width(8.dp))
                         Text(
-                            "${item.categoria} • ${formatarData(item.data)}" +
-                                (vm.contaPorId(item.contaId).let { if (it.isBlank()) "" else " • $it" }),
-                            style = MaterialTheme.typography.bodySmall,
+                            item.valor.emReais(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = if (receita) VERDE else MaterialTheme.colorScheme.onSurface,
                         )
                     }
-                    Text(
-                        item.valor.emReais(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
+                    if (i < recentes.lastIndex) HorizontalDivider()
                 }
-                if (i < estado.recentes.lastIndex) HorizontalDivider()
             }
         }
+    }
+}
+
+/** `BadgeCategoria` com a cor da categoria (espelha `ui.tsx:31-67`). */
+@Composable
+private fun BadgeCategoria(nome: String, corNome: String?) {
+    val cor = corDe(corNome)
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(cor.copy(alpha = 0.15f))
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+    ) {
+        Text(nome, color = cor, style = MaterialTheme.typography.labelSmall, maxLines = 1)
     }
 }
 
