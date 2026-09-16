@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -19,10 +22,20 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Base da API (spec 10-api.md: http://localhost:3001/api).
-        // Em emulador, localhost do host = 10.0.2.2. Sobrescreva via
-        // local.properties (finfin.baseUrl) ou BuildConfig em CI.
-        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3001/api/\"")
+        // Base da API (spec 10-api.md: http://localhost:3001/api no host).
+        // Emulador acessa o host via 10.0.2.2; `localhost` dentro do app
+        // aponta p/ o proprio aparelho/emulador e nunca alcança o backend.
+        // Sobrescreva sem editar este arquivo via local.properties:
+        //   finfin.baseUrl=http://192.168.0.10:3001/api/  (dispositivo fisico)
+        //   finfin.baseUrl=http://10.0.2.2:3001/api/      (emulador, padrão)
+        val propsLocais = Properties()
+        val arquivoLocal = rootProject.file("local.properties")
+        if (arquivoLocal.exists()) {
+            FileInputStream(arquivoLocal).use { propsLocais.load(it) }
+        }
+        val baseUrl = propsLocais.getProperty("finfin.baseUrl")
+            ?: providers.gradleProperty("finfin.baseUrl").getOrElse("http://10.0.2.2:3001/api/")
+        buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
     }
 
     buildTypes {

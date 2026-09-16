@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.fvcode.finfin.ui.screens.TelaCarga
 import com.fvcode.finfin.ui.screens.TelaLogin
 import com.fvcode.finfin.ui.screens.TelaSimples
+import com.fvcode.finfin.ui.home.HomeScreen
 import com.fvcode.finfin.ui.session.SessaoUi
 import com.fvcode.finfin.ui.session.SessaoViewModel
 import kotlinx.coroutines.launch
@@ -86,7 +87,13 @@ private fun EstruturaLogada(vm: SessaoViewModel, nav: NavHostController) {
     ) {
         Scaffold { inner ->
             NavHost(nav, startDestination = Rotas.HOME, modifier = Modifier.padding(inner)) {
-                composable(Rotas.HOME) { TelaSimples("Início") }
+                composable(Rotas.HOME) {
+                    HomeScreen(
+                        aoSessaoExpirada = {
+                            vm.sair { nav.navigate(Rotas.LOGIN) { popUpTo(0) } }
+                        },
+                    )
+                }
                 composable(Rotas.LANCAMENTOS) { TelaSimples("Lançamentos") }
                 composable(Rotas.OFX) { TelaSimples("Importar OFX") }
                 composable(Rotas.RELATORIOS) { TelaSimples("Relatórios") }
