@@ -1,5 +1,6 @@
 package com.fvcode.finfin.ui.auditoria
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,16 +10,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -32,14 +37,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fvcode.finfin.data.model.AuditoriaItem
-import com.fvcode.finfin.ui.components.SecaoTitulo
+import com.fvcode.finfin.ui.components.FinfinCard
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
 
+/** Espelha o padrão dos módulos: ação em card + filtros em card + lista em card. */
 @Composable
 fun AuditoriaScreen(
     vm: AuditoriaViewModel = hiltViewModel(),
@@ -54,22 +62,39 @@ fun AuditoriaScreen(
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            SecaoTitulo("Auditoria")
-            Spacer(Modifier.weight(1f))
-            OutlinedButton(onClick = { vm.abrirLimpeza() }) { Text("Limpar") }
+        FinfinCard(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Auditoria", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Button(
+                    onClick = { vm.abrirLimpeza() },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.inverseSurface,
+                        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    ),
+                ) {
+                    Icon(Icons.Filled.Delete, contentDescription = null)
+                    Spacer(Modifier.width(4.dp))
+                    Text("Limpar trilha")
+                }
+            }
         }
 
-        FiltrosAuditoriaForm(
-            filtros = estado.filtros,
-            aoAplicar = { vm.aplicarFiltros(it) },
-        )
+        FinfinCard(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Filtros", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                FiltrosAuditoriaForm(
+                    filtros = estado.filtros,
+                    aoAplicar = { vm.aplicarFiltros(it) },
+                )
+            }
+        }
 
         estado.erro?.let { msg ->
-            Card {
-                Column(Modifier.padding(12.dp)) {
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp)) {
                     Text(msg, color = MaterialTheme.colorScheme.error)
                     Spacer(Modifier.height(8.dp))
                     Button(onClick = { vm.recarregar() }) { Text("Tentar de novo") }
@@ -78,8 +103,8 @@ fun AuditoriaScreen(
         }
 
         estado.info?.let { msg ->
-            Card {
-                Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(msg, modifier = Modifier.weight(1f))
                     TextButton(onClick = { vm.consumirInfo() }) { Text("OK") }
                 }
@@ -88,41 +113,24 @@ fun AuditoriaScreen(
 
         val pagina = estado.pagina
         if (estado.carregando && pagina == null) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                CircularProgressIndicator()
+            FinfinCard(modifier = Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.Center) {
+                    CircularProgressIndicator()
+                }
             }
         }
         pagina?.let {
-            Text(
-                "Página ${it.pagina} de ${it.totalPaginas} • ${it.total} registro(s)",
-                style = MaterialTheme.typography.bodySmall,
+            CardAuditoria(
+                pagina = it.pagina,
+                totalPaginas = it.totalPaginas,
+                total = it.total,
+                itens = it.itens,
+                carregando = estado.carregando,
+                aoAbrir = { vm.abrirDetalhe(it) },
+                aoRestaurar = { vm.pedirRestaurar(it) },
+                aoAnterior = { vm.mudarPagina(-1) },
+                aoProxima = { vm.mudarPagina(1) },
             )
-            if (it.itens.isEmpty()) {
-                Text("Sem registros.", style = MaterialTheme.typography.bodyMedium)
-            }
-            it.itens.forEachIndexed { i, item ->
-                LinhaAuditoria(
-                    item = item,
-                    aoAbrir = { vm.abrirDetalhe(item) },
-                    aoRestaurar = { vm.pedirRestaurar(item) },
-                )
-                if (i < it.itens.lastIndex) HorizontalDivider()
-            }
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                OutlinedButton(
-                    enabled = it.pagina > 1 && !estado.carregando,
-                    onClick = { vm.mudarPagina(-1) },
-                ) { Text("Anterior") }
-                if (estado.carregando) CircularProgressIndicator()
-                OutlinedButton(
-                    enabled = it.pagina < it.totalPaginas && !estado.carregando,
-                    onClick = { vm.mudarPagina(1) },
-                ) { Text("Próxima") }
-            }
         }
     }
 
@@ -200,6 +208,67 @@ fun AuditoriaScreen(
 }
 
 @Composable
+private fun CardAuditoria(
+    pagina: Int,
+    totalPaginas: Int,
+    total: Int,
+    itens: List<AuditoriaItem>,
+    carregando: Boolean,
+    aoAbrir: (AuditoriaItem) -> Unit,
+    aoRestaurar: (AuditoriaItem) -> Unit,
+    aoAnterior: () -> Unit,
+    aoProxima: () -> Unit,
+) {
+    FinfinCard(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "Registros",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    "· Pág. $pagina/$totalPaginas · $total",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            if (itens.isEmpty()) {
+                Text("Sem registros.", style = MaterialTheme.typography.bodyMedium)
+            }
+            itens.forEachIndexed { i, item ->
+                LinhaAuditoria(
+                    item = item,
+                    aoAbrir = { aoAbrir(item) },
+                    aoRestaurar = { aoRestaurar(item) },
+                )
+                if (i < itens.lastIndex) HorizontalDivider()
+            }
+            Spacer(Modifier.height(8.dp))
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                OutlinedButton(
+                    enabled = pagina > 1 && !carregando,
+                    onClick = aoAnterior,
+                ) { Text("Anterior") }
+                if (carregando) CircularProgressIndicator()
+                OutlinedButton(
+                    enabled = pagina < totalPaginas && !carregando,
+                    onClick = aoProxima,
+                ) { Text("Próxima") }
+            }
+        }
+    }
+}
+
+@Composable
 private fun FiltrosAuditoriaForm(filtros: FiltrosAuditoria, aoAplicar: (FiltrosAuditoria) -> Unit) {
     var modulo by remember(filtros) { mutableStateOf(filtros.modulo) }
     var acao by remember(filtros) { mutableStateOf(filtros.acao) }
@@ -262,6 +331,10 @@ private fun FiltrosAuditoriaForm(filtros: FiltrosAuditoria, aoAplicar: (FiltrosA
                 )
             },
             modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.inverseSurface,
+                contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+            ),
         ) { Text("Filtrar") }
     }
 }
@@ -294,13 +367,13 @@ private fun SeletorSimples(
 @Composable
 private fun LinhaAuditoria(item: AuditoriaItem, aoAbrir: () -> Unit, aoRestaurar: () -> Unit) {
     Column(
-        Modifier.fillMaxWidth().clickable(onClick = aoAbrir).padding(vertical = 6.dp),
+        Modifier.fillMaxWidth().clickable(onClick = aoAbrir).padding(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            AssistChip(onClick = {}, label = { Text(item.modulo) })
-            Spacer(modifier = Modifier.padding(horizontal = 4.dp))
-            AssistChip(onClick = {}, label = { Text(item.acao) })
+            BadgeAuditoria(item.modulo)
+            Spacer(Modifier.width(6.dp))
+            BadgeAuditoria(item.acao)
             Spacer(Modifier.weight(1f))
             if (item.restauravel()) {
                 TextButton(onClick = aoRestaurar) { Text("Restaurar") }
@@ -311,8 +384,30 @@ private fun LinhaAuditoria(item: AuditoriaItem, aoAbrir: () -> Unit, aoRestaurar
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
         )
-        Text(formatarCriadoEm(item.criadoEm), style = MaterialTheme.typography.bodySmall)
+        Text(
+            formatarCriadoEm(item.criadoEm),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun BadgeAuditoria(texto: String) {
+    androidx.compose.foundation.layout.Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+    ) {
+        Text(
+            texto,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+        )
     }
 }
 
