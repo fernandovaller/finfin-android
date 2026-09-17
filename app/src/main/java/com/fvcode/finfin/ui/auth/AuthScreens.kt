@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fvcode.finfin.R
+import com.fvcode.finfin.ui.servidor.ServidorFormulario
 import com.fvcode.finfin.ui.session.SessaoViewModel
 import com.fvcode.finfin.ui.theme.Marinho
 import com.fvcode.finfin.ui.theme.Slate100
@@ -73,6 +74,7 @@ fun TelaAuth(
     var senha by remember { mutableStateOf("") }
     var erro by remember { mutableStateOf<String?>(null) }
     var carregando by remember { mutableStateOf(false) }
+    var mostrarServidor by remember { mutableStateOf(false) }
 
     fun submeter() {
         erro = null
@@ -160,7 +162,21 @@ fun TelaAuth(
                     Text("Esqueci a senha", color = CinzaTexto, fontWeight = FontWeight.SemiBold)
                 }
             }
+            TextButton(onClick = { mostrarServidor = true }, modifier = Modifier.fillMaxWidth()) {
+                Text("⚙ Alterar servidor", color = CinzaTexto, fontWeight = FontWeight.SemiBold)
+            }
         }
+    }
+
+    if (mostrarServidor) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { mostrarServidor = false },
+            title = { Text("Servidor da API") },
+            text = { ServidorFormulario(aoTrocou = { mostrarServidor = false }) },
+            confirmButton = {
+                TextButton(onClick = { mostrarServidor = false }) { Text("Fechar") }
+            },
+        )
     }
 }
 

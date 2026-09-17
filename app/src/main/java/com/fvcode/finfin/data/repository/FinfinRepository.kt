@@ -45,6 +45,10 @@ class FinfinRepository @Inject constructor(
         return r
     }
 
+    /** GET /api/saude — sem auth, sem expirar sessão. Leve (healthcheck). */
+    suspend fun saude(): ApiResult<com.fvcode.finfin.data.model.SaudeResposta> =
+        aoResultado({ api.saude() }, semToken = true)
+
     suspend fun receitas(contaId: Int? = null): ApiResult<List<Receita>> = chamada { api.receitas(contaId) }
     suspend fun despesas(contaId: Int? = null): ApiResult<List<Despesa>> = chamada { api.despesas(contaId) }
     suspend fun criarReceita(c: ReceitaCorpo): ApiResult<Receita> = chamada { api.criarReceita(c) }

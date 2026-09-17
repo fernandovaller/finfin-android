@@ -44,6 +44,9 @@ import retrofit2.http.Query
  * Espelho de `docs/specs/10-api.md`. Base `.../api/`.
  */
 interface FinfinApi {
+    // Saúde (sem auth, leve; usada p/ testar o servidor configurado)
+    @GET("saude") suspend fun saude(): com.fvcode.finfin.data.model.SaudeResposta
+
     // Auth
     @POST("auth/cadastro") suspend fun cadastro(@Body corpo: CadastroCorpo): Sessao
     @POST("auth/login") suspend fun login(@Body corpo: LoginCorpo): Sessao

@@ -41,9 +41,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.fvcode.finfin.BuildConfig
 import com.fvcode.finfin.core.datastore.FinfinPreferences
 import com.fvcode.finfin.ui.components.FinfinCard
+import com.fvcode.finfin.ui.servidor.ServidorFormulario
 import com.fvcode.finfin.ui.session.SessaoViewModel
 
 private val ABAS = listOf("Geral", "Backup", "E-mail", "Perigo")
@@ -144,6 +144,9 @@ fun ConfigScreen(
                     estado = estado,
                     tema = tema,
                     aoTema = { sessao.salvarTema(it) },
+                    aoServidorTrocado = {
+                        sessao.sair { aoSessaoExpirada() }
+                    },
                 )
                 1 -> AbaBackup(
                     estado = estado,
@@ -219,7 +222,12 @@ fun ConfigScreen(
 }
 
 @Composable
-private fun AbaGeral(estado: ConfigUiState, tema: String, aoTema: (String) -> Unit) {
+private fun AbaGeral(
+    estado: ConfigUiState,
+    tema: String,
+    aoTema: (String) -> Unit,
+    aoServidorTrocado: () -> Unit = {},
+) {
     val c = estado.contagem
     FinfinCard(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -247,11 +255,18 @@ private fun AbaGeral(estado: ConfigUiState, tema: String, aoTema: (String) -> Un
                     FilterChip(selected = tema == v, onClick = { aoTema(v) }, label = { Text(r) })
                 }
             }
+        }
+    }
+    FinfinCard(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Servidor da API", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(
-                "Servidor: ${BuildConfig.BASE_URL}",
+                "Trocar de servidor desconecta (token do backend antigo não vale no novo). " +
+                    "A URL é testada via GET /api/saude antes de salvar.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            ServidorFormulario(aoTrocou = aoServidorTrocado)
         }
     }
 }

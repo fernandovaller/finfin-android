@@ -2,6 +2,7 @@ package com.fvcode.finfin.di
 
 import com.fvcode.finfin.BuildConfig
 import com.fvcode.finfin.core.network.AuthInterceptor
+import com.fvcode.finfin.core.network.DynamicHostInterceptor
 import com.fvcode.finfin.data.remote.FinfinApi
 import dagger.Module
 import dagger.Provides
@@ -19,14 +20,23 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttp(auth: AuthInterceptor): OkHttpClient {
+    fun provideOkHttp(
+        dynamicHost: DynamicHostInterceptor,
+        auth: AuthInterceptor,
+    ): OkHttpClient {
         val log = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
         return OkHttpClient.Builder()
+            // PRIMEIRO: reescreve scheme/host/porta p/ URL efetiva (runtime).
+            .addInterceptor(dynamicHost)
             .addInterceptor(auth)
             .addInterceptor(log)
             .build()
     }
 
+    /**
+     * baseUrl aqui é só o default de compilação (fallback). O host efetivo
+     * de cada request vem do [DynamicHostInterceptor] (DataStore ou default).
+     */
     @Provides
     @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit =

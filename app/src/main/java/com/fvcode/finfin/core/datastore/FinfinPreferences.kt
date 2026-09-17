@@ -20,6 +20,8 @@ class FinfinPreferences @Inject constructor(
     val token: Flow<String?> = dataStore.data.map { it[KEY_TOKEN] }
     val tema: Flow<String> = dataStore.data.map { it[KEY_TEMA] ?: TEMA_SISTEMA }
     val largura: Flow<String> = dataStore.data.map { it[KEY_LARGURA] ?: LARGURA_FLUIDA }
+    // URL efetiva do backend (runtime). Nula = usar BuildConfig.BASE_URL (default de build).
+    val baseUrl: Flow<String?> = dataStore.data.map { it[KEY_BASE_URL] }
 
     suspend fun salvarToken(token: String?) {
         dataStore.edit {
@@ -35,10 +37,19 @@ class FinfinPreferences @Inject constructor(
         dataStore.edit { it[KEY_LARGURA] = largura }
     }
 
+    suspend fun salvarBaseUrl(url: String) {
+        dataStore.edit { it[KEY_BASE_URL] = url }
+    }
+
+    suspend fun limparBaseUrl() {
+        dataStore.edit { it.remove(KEY_BASE_URL) }
+    }
+
     companion object {
         private val KEY_TOKEN = stringPreferencesKey("finfin_token")
         private val KEY_TEMA = stringPreferencesKey("finfin_tema")
         private val KEY_LARGURA = stringPreferencesKey("finfin_largura")
+        private val KEY_BASE_URL = stringPreferencesKey("finfin_base_url")
 
         const val TEMA_CLARO = "claro"
         const val TEMA_ESCURO = "escuro"

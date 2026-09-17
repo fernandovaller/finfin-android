@@ -30,6 +30,14 @@ data class EmailStatus(
     val mascarada: String?,
 )
 
+// --- Saúde (GET /api/saude, sem auth) ---
+
+data class SaudeResposta(
+    val ok: Boolean = false,
+    val app: String? = null,
+    val versao: Int? = null,
+)
+
 // --- Catalogo (03-catalogo.md) ---
 
 data class Categoria(
